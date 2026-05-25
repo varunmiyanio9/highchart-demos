@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Highcharts Demo</title>
+    <!-- Highcharts Core -->
+    <script src="library/highcharts.js"></script>
+    <script src="library/modules/core-extensions/highcharts-more.js"></script>
+
+    <!-- Export -->
+    <script src="library/modules/export/exporting.js"></script>
+    <script src="library/modules/export/offline-exporting.js"></script>
+    <script src="library/modules/export/export-data.js"></script>
+
+    <!-- Accessibility -->
+    <script src="library/modules/accessibility/accessibility.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <h1>Highcharts Demo</h1>
+    </header>
+    <div class="layout">
+        <aside class="sidebar">
+            <nav>
+                <ul>
+                    <li><a href="#" data-chart="bar-chart">Bar Chart</a></li>
+                    <li><a href="#" data-chart="axis-selection">Axis Selection</a></li>
+                    <li><a href="#" data-chart="bucket-selection">Bucket Selection</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="content">
+            <div id="bar-chart" class="chart-container"></div>
+            <div id="axis-selection" class="chart-container" style="display:none;">
+                <div id="selection-chart"></div>
+                <div id="selection-detail" class="detail-panel">
+                    <h3>Selected Points Detail</h3>
+                    <p class="hint">Click, Ctrl+Click, or drag to select bars. Use Tab → Arrow keys → Space for keyboard selection. Shift+Arrow for range select.</p>
+                    <div id="detail-content"></div>
+                </div>
+            </div>
+            <div id="bucket-selection" class="chart-container" style="display:none;">
+                <div id="bucket-chart"></div>
+                <div id="bucket-detail" class="detail-panel">
+                    <h3>Selected Buckets Detail</h3>
+                    <p class="hint">Click x-axis labels or bars to select entire category. Ctrl+Click to multi-select. Drag to select range. Keyboard: Tab into labels → Arrow keys → Space to toggle. Escape to clear.</p>
+                    <div id="bucket-content"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="charts.js"></script>
+    <script src="charts/bar-chart.js"></script>
+    <script src="charts/axis-selection.js"></script>
+    <script src="charts/bucket-selection.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "highcharts": {
+      "type": "sse",
+      "url": "https://mcp.highcharts.ai/developers/mcp"
+    }
+  }
+}

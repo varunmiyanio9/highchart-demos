@@ -1,0 +1,8 @@
+
+**/prompt/
+**/tmp/
+.mcp.json
+.env
+
+node_modules/
+.clasp.json
