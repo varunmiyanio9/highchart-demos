@@ -128,3 +128,60 @@ body {
     outline-offset: 2px;
     background: rgba(52, 152, 219, 0.1);
 }
+
+.tick-toolbar {
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 60px;
+    border-top: 1px solid #dee2e6;
+    background: #fff;
+}
+
+.tick-btn {
+    padding: 8px 16px;
+    border: 2px solid #bdc3c7;
+    border-radius: 4px;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    color: #2c3e50;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.tick-btn:hover {
+    border-color: #9b59b6;
+    background: rgba(155, 89, 182, 0.05);
+}
+
+.tick-btn:focus {
+    outline: 2px solid #3498db;
+    outline-offset: 2px;
+}
+
+.tick-btn-selected {
+    background: rgba(155, 89, 182, 0.15);
+    border-color: #8e44ad;
+    color: #6c3483;
+    font-weight: 700;
+}
+
+.label-click {
+    cursor: pointer;
+    padding: 4px 8px;
+    display: inline-block;
+    border-radius: 3px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+}
+
+.label-click:hover {
+    color: #e67e22;
+    border-bottom-color: #e67e22;
+}
+
+.label-click-selected {
+    font-weight: 700;
+    color: #d35400;
+    border-bottom-color: #d35400;
+}

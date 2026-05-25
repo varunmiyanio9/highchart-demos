@@ -2,30 +2,22 @@
 // BUCKET SELECTION - Select entire x-axis categories (all series at once)
 //
 // APPROACH: Instead of selecting individual points, we select "buckets" —
-// entire x-axis categories. Clicking any bar or the x-axis label selects
-// ALL points at that x index across ALL series.
+// entire x-axis categories. Clicking any bar selects ALL points at that x
+// index across ALL series.
 //
 // BUILT-IN Highcharts features used:
 //   - xAxis.plotBands (addPlotBand/removePlotBand) → visual highlight of bucket
-//   - xAxis.labels.useHTML + formatter → clickable x-axis labels (mouse only)
 //   - point.select(selected, accumulate) → mark points as selected
 //   - chart.getSelectedPoints() → retrieve selection
 //   - accessibility module → Tab/Arrow keyboard navigation into chart bars
 //
 // CUSTOM implementation needed:
 //   1. Bucket selection logic — selecting a point selects ALL points at that x
-//   2. Clickable x-axis labels — useHTML labels with click handlers (mouse)
-//   3. PlotBand management — add/remove plotBands to highlight selected buckets
-//   4. Keyboard: Space/Enter accumulates (same pattern as axis-selection)
-//   5. Keyboard: Shift+Arrow range selection via mouseOver hook
-//   6. Keyboard: Escape to clear
-//   7. Drag-to-select buckets — intercept chart selection event
-//
-// KEYBOARD APPROACH: Same pattern as axis-selection — accessibility module
-// handles Tab/Arrow focus on bars. When a bar is activated (Space/Enter),
-// we select the entire bucket at that x-index. Shift+Arrow extends selection.
-// X-axis labels remain clickable by mouse but are NOT keyboard-navigated
-// (the bars serve as the keyboard entry point).
+//   2. PlotBand management — add/remove plotBands to highlight selected buckets
+//   3. Keyboard: Space/Enter accumulates (same pattern as axis-selection)
+//   4. Keyboard: Shift+Arrow range selection via mouseOver hook
+//   5. Keyboard: Escape to clear
+//   6. Drag-to-select buckets — intercept chart selection event
 //
 // TRADE-OFF: Same as axis-selection — drag-to-select and zoom cannot coexist.
 // =============================================================================
@@ -34,10 +26,7 @@
     const BUCKET_CATEGORIES = ['Q1-2024', 'Q2-2024', 'Q3-2024', 'Q4-2024', 'Q1-2025', 'Q2-2025'];
     const HIGHLIGHT_COLOR = 'rgba(46, 204, 113, 0.15)';
 
-    // Track selected bucket indices
     let selectedBuckets = new Set();
-
-    // Track keyboard state (same pattern as axis-selection)
     let isKeyboardInteraction = false;
     let shiftKeyDown = false;
 
@@ -54,7 +43,7 @@
         if (!chart) return;
 
         if (selectedBuckets.size === 0) {
-            content.innerHTML = '<p class="no-selection">No buckets selected. Click a label or bar, Ctrl+Click for multiple, or drag to select a range.</p>';
+            content.innerHTML = '<p class="no-selection">No buckets selected. Click a bar, Ctrl+Click for multiple, or drag to select a range.</p>';
             return;
         }
 
@@ -126,7 +115,6 @@
         syncPlotBands();
         syncPointSelection();
         updateBucketDetailPanel();
-        updateLabelStyles();
     }
 
     function clearBuckets() {
@@ -134,45 +122,23 @@
         syncPlotBands();
         syncPointSelection();
         updateBucketDetailPanel();
-        updateLabelStyles();
     }
 
-    function updateLabelStyles() {
-        const labels = document.querySelectorAll('#bucket-chart .bucket-label');
-        labels.forEach(label => {
-            const idx = parseInt(label.dataset.index, 10);
-            if (selectedBuckets.has(idx)) {
-                label.style.fontWeight = 'bold';
-                label.style.color = '#27ae60';
-                label.style.borderBottom = '2px solid #27ae60';
-            } else {
-                label.style.fontWeight = 'normal';
-                label.style.color = '#333';
-                label.style.borderBottom = 'none';
-            }
-        });
-    }
-
-    // CUSTOM: Handle point click — selects entire bucket at that x-index
     function handleBucketPointClick(e) {
         const accumulate = e.ctrlKey || e.metaKey || isKeyboardInteraction;
         selectBucket(this.x, accumulate);
         isKeyboardInteraction = false;
     }
 
-    // CUSTOM: Shift+Arrow range selection via mouseOver hook
-    // Accessibility module fires mouseOver when navigating with Arrow keys.
     function handleBucketPointMouseOver() {
         if (shiftKeyDown && this.series.chart === window.bucketChart) {
             selectedBuckets.add(this.x);
             syncPlotBands();
             syncPointSelection();
             updateBucketDetailPanel();
-            updateLabelStyles();
         }
     }
 
-    // Handle drag to select buckets
     function selectBucketsByDrag(e) {
         if (!e.xAxis) return;
 
@@ -186,7 +152,6 @@
         syncPlotBands();
         syncPointSelection();
         updateBucketDetailPanel();
-        updateLabelStyles();
         return false;
     }
 
@@ -197,8 +162,6 @@
     window.initBucketSelectionChart = function () {
         const chartContainer = document.getElementById('bucket-chart');
 
-        // CUSTOM: Keydown listener for Space/Enter flag + Escape to clear
-        // (same pattern as axis-selection)
         chartContainer.addEventListener('keydown', function (e) {
             if (e.key === ' ' || e.key === 'Enter') {
                 isKeyboardInteraction = true;
@@ -221,20 +184,10 @@
                 text: 'Quarterly Revenue — Bucket Selection'
             },
             subtitle: {
-                text: 'Click label or bar to select entire category | Ctrl+Click for multi | Drag for range'
+                text: 'Click bar to select entire category | Ctrl+Click for multi | Drag for range'
             },
             xAxis: {
                 categories: BUCKET_CATEGORIES,
-                labels: {
-                    useHTML: true,
-                    formatter: function () {
-                        return `<span class="bucket-label" data-index="${this.pos}"
-                            style="cursor:pointer; padding:4px 8px; display:inline-block;
-                            border-radius:3px; transition: all 0.2s;"
-                            tabindex="-1"
-                            aria-hidden="true">${this.value}</span>`;
-                    }
-                },
                 crosshair: {
                     width: 1,
                     color: '#aaa',
@@ -273,8 +226,6 @@
                 name: 'Asia Pacific',
                 data: [68, 74, 82, 91, 103, 112]
             }],
-            // BUILT-IN: Accessibility keyboard navigation enabled — Tab into chart,
-            // Arrow keys navigate bars, Space/Enter to select (we intercept via click handler)
             accessibility: {
                 enabled: true,
                 keyboardNavigation: {
@@ -289,28 +240,6 @@
             }
         });
 
-        // Attach mouse click handlers to x-axis labels
-        setTimeout(attachLabelClickHandlers, 200);
-        Highcharts.addEvent(window.bucketChart, 'redraw', function () {
-            setTimeout(attachLabelClickHandlers, 50);
-        });
-
         updateBucketDetailPanel();
     };
-
-    // X-axis labels are mouse-clickable only (keyboard goes through bars)
-    function attachLabelClickHandlers() {
-        const labels = document.querySelectorAll('#bucket-chart .bucket-label');
-        labels.forEach(label => {
-            if (label.dataset.bound) return;
-            label.dataset.bound = 'true';
-
-            label.addEventListener('click', function (e) {
-                e.stopPropagation();
-                const idx = parseInt(this.dataset.index, 10);
-                const accumulate = e.ctrlKey || e.metaKey;
-                selectBucket(idx, accumulate);
-            });
-        });
-    }
 })();

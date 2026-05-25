@@ -14,6 +14,12 @@ document.querySelectorAll('.sidebar a').forEach(link => {
         if (target === 'bucket-selection' && !window.bucketChart) {
             initBucketSelectionChart();
         }
+        if (target === 'tick-selection' && !window.tickChart) {
+            initTickSelectionChart();
+        }
+        if (target === 'label-click' && !window.labelChart) {
+            initLabelClickChart();
+        }
     });
 });
 

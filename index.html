@@ -28,6 +28,8 @@
                     <li><a href="#" data-chart="bar-chart">Bar Chart</a></li>
                     <li><a href="#" data-chart="axis-selection">Axis Selection</a></li>
                     <li><a href="#" data-chart="bucket-selection">Bucket Selection</a></li>
+                    <li><a href="#" data-chart="tick-selection">Axis Tick Selection</a></li>
+                    <li><a href="#" data-chart="label-click">Label Click Selection</a></li>
                 </ul>
             </nav>
         </aside>
@@ -45,8 +47,25 @@
                 <div id="bucket-chart"></div>
                 <div id="bucket-detail" class="detail-panel">
                     <h3>Selected Buckets Detail</h3>
-                    <p class="hint">Click x-axis labels or bars to select entire category. Ctrl+Click to multi-select. Drag to select range. Keyboard: Tab into labels → Arrow keys → Space to toggle. Escape to clear.</p>
+                    <p class="hint">Click bars to select entire category. Ctrl+Click to multi-select. Drag to select range. Keyboard: Tab into chart → Arrow keys → Space to toggle. Escape to clear.</p>
                     <div id="bucket-content"></div>
+                </div>
+            </div>
+            <div id="tick-selection" class="chart-container" style="display:none;">
+                <div id="tick-chart"></div>
+                <div id="tick-toolbar" class="tick-toolbar" role="toolbar" aria-label="Category selection"></div>
+                <div id="tick-detail" class="detail-panel">
+                    <h3>Selected Categories Detail</h3>
+                    <p class="hint">Click buttons to select categories. Ctrl+Click for multi-select. Shift+Click for range. Keyboard: Tab into buttons → Arrow keys to move → Space to toggle. Escape to clear.</p>
+                    <div id="tick-content"></div>
+                </div>
+            </div>
+            <div id="label-click" class="chart-container" style="display:none;">
+                <div id="label-chart"></div>
+                <div id="label-detail" class="detail-panel">
+                    <h3>Selected Categories Detail</h3>
+                    <p class="hint">Click x-axis labels to select. Ctrl+Click for multi-select. Click chart background to clear.</p>
+                    <div id="label-content"></div>
                 </div>
             </div>
         </main>
@@ -55,5 +74,7 @@
     <script src="charts/bar-chart.js"></script>
     <script src="charts/axis-selection.js"></script>
     <script src="charts/bucket-selection.js"></script>
+    <script src="charts/axis-tick-selection.js"></script>
+    <script src="charts/label-click-selection.js"></script>
 </body>
 </html>
