@@ -119,6 +119,24 @@ body {
     font-style: italic;
 }
 
+.bucket-section-title {
+    font-size: 18px;
+    color: #2c3e50;
+    margin-bottom: 6px;
+}
+
+.bucket-section-hint {
+    font-size: 13px;
+    color: #7f8c8d;
+    margin-bottom: 20px;
+}
+
+#bucket-chart-column,
+#bucket-chart-line,
+#bucket-chart-area {
+    margin-bottom: 20px;
+}
+
 .bucket-label:hover {
     background: rgba(46, 204, 113, 0.1);
 }
@@ -184,4 +202,30 @@ body {
     font-weight: 700;
     color: #d35400;
     border-bottom-color: #d35400;
+}
+
+#combined-chart-column,
+#combined-chart-line,
+#combined-chart-area {
+    margin-bottom: 20px;
+}
+
+.combined-label {
+    cursor: pointer;
+    padding: 4px 8px;
+    display: inline-block;
+    border-radius: 3px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+}
+
+.combined-label:hover {
+    color: #27ae60;
+    border-bottom-color: #27ae60;
+}
+
+.combined-label-selected {
+    font-weight: 700;
+    color: #27ae60;
+    border-bottom-color: #27ae60;
 }

@@ -20,6 +20,9 @@ document.querySelectorAll('.sidebar a').forEach(link => {
         if (target === 'label-click' && !window.labelChart) {
             initLabelClickChart();
         }
+        if (target === 'combined-selection' && !window.combinedChart) {
+            initCombinedSelectionChart();
+        }
     });
 });
 

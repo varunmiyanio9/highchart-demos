@@ -1,34 +1,23 @@
 // =============================================================================
-// BUCKET SELECTION - Select entire x-axis categories (all series at once)
+// BUCKET SELECTION — Multi Chart Type Demo (Column, Line, Area)
 //
-// APPROACH: Instead of selecting individual points, we select "buckets" —
-// entire x-axis categories. Clicking any bar selects ALL points at that x
-// index across ALL series.
-//
-// BUILT-IN Highcharts features used:
-//   - xAxis.plotBands (addPlotBand/removePlotBand) → visual highlight of bucket
-//   - point.select(selected, accumulate) → mark points as selected
-//   - chart.getSelectedPoints() → retrieve selection
-//   - accessibility module → Tab/Arrow keyboard navigation into chart bars
-//
-// CUSTOM implementation needed:
-//   1. Bucket selection logic — selecting a point selects ALL points at that x
-//   2. PlotBand management — add/remove plotBands to highlight selected buckets
-//   3. Keyboard: Space/Enter accumulates (same pattern as axis-selection)
-//   4. Keyboard: Shift+Arrow range selection via mouseOver hook
-//   5. Keyboard: Escape to clear
-//   6. Drag-to-select buckets — intercept chart selection event
-//
-// TRADE-OFF: Same as axis-selection — drag-to-select and zoom cannot coexist.
+// Shared selection state across three chart types. Selecting a bucket in any
+// chart selects it in all charts and updates a single summary table.
 // =============================================================================
 
 (function () {
     const BUCKET_CATEGORIES = ['Q1-2024', 'Q2-2024', 'Q3-2024', 'Q4-2024', 'Q1-2025', 'Q2-2025'];
     const HIGHLIGHT_COLOR = 'rgba(46, 204, 113, 0.15)';
+    const SERIES_DATA = [
+        { name: 'North America', data: [120, 135, 148, 162, 175, 190] },
+        { name: 'Europe', data: [95, 102, 110, 98, 115, 125] },
+        { name: 'Asia Pacific', data: [68, 74, 82, 91, 103, 112] }
+    ];
 
     let selectedBuckets = new Set();
     let isKeyboardInteraction = false;
     let shiftKeyDown = false;
+    let charts = [];
 
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Shift') shiftKeyDown = true;
@@ -39,24 +28,23 @@
 
     function updateBucketDetailPanel() {
         const content = document.getElementById('bucket-content');
-        const chart = window.bucketChart;
-        if (!chart) return;
+        if (!charts.length) return;
 
         if (selectedBuckets.size === 0) {
-            content.innerHTML = '<p class="no-selection">No buckets selected. Click a bar, Ctrl+Click for multiple, or drag to select a range.</p>';
+            content.innerHTML = '<p class="no-selection">No buckets selected. Click a point, Ctrl+Click for multiple, or drag to select a range.</p>';
             return;
         }
 
         let html = '<table><thead><tr><th>Category</th>';
-        chart.series.forEach(s => { html += `<th>${s.name}</th>`; });
+        SERIES_DATA.forEach(s => { html += `<th>${s.name}</th>`; });
         html += '<th>Total</th></tr></thead><tbody>';
 
         const sortedBuckets = [...selectedBuckets].sort((a, b) => a - b);
         sortedBuckets.forEach(idx => {
             let total = 0;
             html += `<tr><td><strong>${BUCKET_CATEGORIES[idx]}</strong></td>`;
-            chart.series.forEach(s => {
-                const val = s.data[idx] ? s.data[idx].y : 0;
+            SERIES_DATA.forEach(s => {
+                const val = s.data[idx] || 0;
                 total += val;
                 html += `<td>${val}</td>`;
             });
@@ -67,136 +55,91 @@
         content.innerHTML = html;
     }
 
-    function syncPlotBands() {
-        const chart = window.bucketChart;
-        if (!chart) return;
-
-        const axis = chart.xAxis[0];
-        BUCKET_CATEGORIES.forEach((_, i) => {
-            axis.removePlotBand('bucket-band-' + i);
-        });
-
-        selectedBuckets.forEach(idx => {
-            axis.addPlotBand({
-                from: idx - 0.5,
-                to: idx + 0.5,
-                color: HIGHLIGHT_COLOR,
-                id: 'bucket-band-' + idx,
-                zIndex: 0
+    function syncAllCharts() {
+        charts.forEach(chart => {
+            const axis = chart.xAxis[0];
+            BUCKET_CATEGORIES.forEach((_, i) => {
+                axis.removePlotBand('bucket-band-' + i);
+            });
+            selectedBuckets.forEach(idx => {
+                axis.addPlotBand({
+                    from: idx - 0.5,
+                    to: idx + 0.5,
+                    color: HIGHLIGHT_COLOR,
+                    id: 'bucket-band-' + idx,
+                    zIndex: 0
+                });
+            });
+            chart.series.forEach(series => {
+                series.points.forEach(point => {
+                    const shouldBeSelected = selectedBuckets.has(point.x);
+                    if (point.selected !== shouldBeSelected) {
+                        point.select(shouldBeSelected, true);
+                    }
+                });
             });
         });
-    }
-
-    function syncPointSelection() {
-        const chart = window.bucketChart;
-        if (!chart) return;
-
-        chart.series.forEach(series => {
-            series.points.forEach(point => {
-                const shouldBeSelected = selectedBuckets.has(point.x);
-                if (point.selected !== shouldBeSelected) {
-                    point.select(shouldBeSelected, true);
-                }
-            });
-        });
+        updateBucketDetailPanel();
     }
 
     function selectBucket(idx, accumulate) {
         if (!accumulate) {
             selectedBuckets.clear();
         }
-
         if (selectedBuckets.has(idx)) {
             selectedBuckets.delete(idx);
         } else {
             selectedBuckets.add(idx);
         }
-
-        syncPlotBands();
-        syncPointSelection();
-        updateBucketDetailPanel();
+        syncAllCharts();
     }
 
     function clearBuckets() {
         selectedBuckets.clear();
-        syncPlotBands();
-        syncPointSelection();
-        updateBucketDetailPanel();
+        syncAllCharts();
     }
 
-    function handleBucketPointClick(e) {
+    function handlePointClick(e) {
         const accumulate = e.ctrlKey || e.metaKey || isKeyboardInteraction;
         selectBucket(this.x, accumulate);
         isKeyboardInteraction = false;
     }
 
-    function handleBucketPointMouseOver() {
-        if (shiftKeyDown && this.series.chart === window.bucketChart) {
+    function handlePointMouseOver() {
+        if (shiftKeyDown) {
             selectedBuckets.add(this.x);
-            syncPlotBands();
-            syncPointSelection();
-            updateBucketDetailPanel();
+            syncAllCharts();
         }
     }
 
-    function selectBucketsByDrag(e) {
+    function handleDragSelect(e) {
         if (!e.xAxis) return;
-
         const min = Math.floor(e.xAxis[0].min + 0.5);
         const max = Math.floor(e.xAxis[0].max + 0.5);
-
         for (let i = Math.max(0, min); i <= Math.min(BUCKET_CATEGORIES.length - 1, max); i++) {
             selectedBuckets.add(i);
         }
-
-        syncPlotBands();
-        syncPointSelection();
-        updateBucketDetailPanel();
+        syncAllCharts();
         return false;
     }
 
-    function clearOnBackgroundClick() {
-        clearBuckets();
-    }
-
-    window.initBucketSelectionChart = function () {
-        const chartContainer = document.getElementById('bucket-chart');
-
-        chartContainer.addEventListener('keydown', function (e) {
-            if (e.key === ' ' || e.key === 'Enter') {
-                isKeyboardInteraction = true;
-            }
-            if (e.key === 'Escape') {
-                clearBuckets();
-            }
-        }, true);
-
-        window.bucketChart = Highcharts.chart('bucket-chart', {
+    function createChart(containerId, type, title) {
+        return Highcharts.chart(containerId, {
             chart: {
-                type: 'column',
+                type: type,
                 zooming: { type: 'x' },
                 events: {
-                    selection: selectBucketsByDrag,
-                    click: clearOnBackgroundClick
+                    selection: handleDragSelect,
+                    click: clearBuckets
                 }
             },
-            title: {
-                text: 'Quarterly Revenue — Bucket Selection'
-            },
-            subtitle: {
-                text: 'Click bar to select entire category | Ctrl+Click for multi | Drag for range'
-            },
+            title: { text: title },
+            subtitle: { text: 'Click to select bucket | Ctrl+Click multi | Drag range' },
             xAxis: {
                 categories: BUCKET_CATEGORIES,
-                crosshair: {
-                    width: 1,
-                    color: '#aaa',
-                    dashStyle: 'Dash'
-                }
+                crosshair: { width: 1, color: '#aaa', dashStyle: 'Dash' }
             },
-            yAxis: {
-                title: { text: 'Revenue ($K)' }
-            },
+            yAxis: { title: { text: 'Revenue ($K)' } },
             plotOptions: {
                 series: {
                     allowPointSelect: false,
@@ -210,36 +153,35 @@
                     },
                     point: {
                         events: {
-                            click: handleBucketPointClick,
-                            mouseOver: handleBucketPointMouseOver
+                            click: handlePointClick,
+                            mouseOver: handlePointMouseOver
                         }
                     }
                 }
             },
-            series: [{
-                name: 'North America',
-                data: [120, 135, 148, 162, 175, 190]
-            }, {
-                name: 'Europe',
-                data: [95, 102, 110, 98, 115, 125]
-            }, {
-                name: 'Asia Pacific',
-                data: [68, 74, 82, 91, 103, 112]
-            }],
+            series: SERIES_DATA.map(s => ({ ...s, data: [...s.data] })),
             accessibility: {
                 enabled: true,
-                keyboardNavigation: {
-                    enabled: true,
-                    seriesNavigation: {
-                        mode: 'normal'
-                    }
-                },
-                point: {
-                    valueDescriptionFormat: '{point.category}, {series.name}: {point.y}K revenue'
-                }
+                keyboardNavigation: { enabled: true, seriesNavigation: { mode: 'normal' } },
+                point: { valueDescriptionFormat: '{point.category}, {series.name}: {point.y}K revenue' }
             }
         });
+    }
 
+    window.initBucketSelectionChart = function () {
+        const wrapper = document.getElementById('bucket-selection');
+        wrapper.addEventListener('keydown', function (e) {
+            if (e.key === ' ' || e.key === 'Enter') isKeyboardInteraction = true;
+            if (e.key === 'Escape') clearBuckets();
+        }, true);
+
+        charts = [
+            createChart('bucket-chart-column', 'column', 'Column Chart — Bucket Selection'),
+            createChart('bucket-chart-line', 'line', 'Line Chart — Bucket Selection'),
+            createChart('bucket-chart-area', 'area', 'Area Chart — Bucket Selection')
+        ];
+
+        window.bucketChart = charts[0];
         updateBucketDetailPanel();
     };
 })();

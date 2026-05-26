@@ -30,6 +30,7 @@
                     <li><a href="#" data-chart="bucket-selection">Bucket Selection</a></li>
                     <li><a href="#" data-chart="tick-selection">Axis Tick Selection</a></li>
                     <li><a href="#" data-chart="label-click">Label Click Selection</a></li>
+                    <li><a href="#" data-chart="combined-selection">Combined Selection</a></li>
                 </ul>
             </nav>
         </aside>
@@ -44,10 +45,14 @@
                 </div>
             </div>
             <div id="bucket-selection" class="chart-container" style="display:none;">
-                <div id="bucket-chart"></div>
+                <h2 class="bucket-section-title">Bucket Selection — Multi Chart Types</h2>
+                <p class="bucket-section-hint">Selection is shared across all charts. Click, Ctrl+Click, or drag to select buckets.</p>
+                <div id="bucket-chart-column"></div>
+                <div id="bucket-chart-line"></div>
+                <div id="bucket-chart-area"></div>
                 <div id="bucket-detail" class="detail-panel">
                     <h3>Selected Buckets Detail</h3>
-                    <p class="hint">Click bars to select entire category. Ctrl+Click to multi-select. Drag to select range. Keyboard: Tab into chart → Arrow keys → Space to toggle. Escape to clear.</p>
+                    <p class="hint">Click to select entire category. Ctrl+Click to multi-select. Drag to select range. Keyboard: Tab into chart → Arrow keys → Space to toggle. Escape to clear.</p>
                     <div id="bucket-content"></div>
                 </div>
             </div>
@@ -68,6 +73,18 @@
                     <div id="label-content"></div>
                 </div>
             </div>
+            <div id="combined-selection" class="chart-container" style="display:none;">
+                <h2 class="bucket-section-title">Combined Selection — Bidirectional Label + Grid</h2>
+                <p class="bucket-section-hint">Drag on chart for range select. Click x-axis labels. Ctrl+Click for multi-select. Keyboard: Tab → Arrow → Space.</p>
+                <div id="combined-chart-column"></div>
+                <div id="combined-chart-line"></div>
+                <div id="combined-chart-area"></div>
+                <div id="combined-detail" class="detail-panel">
+                    <h3>Selected Categories Detail</h3>
+                    <p class="hint">Drag to select range on grid. Click labels for single select. Ctrl+Click for multi. Shift+Arrow for range. Escape to clear.</p>
+                    <div id="combined-content"></div>
+                </div>
+            </div>
         </main>
     </div>
     <script src="charts.js"></script>
@@ -76,5 +93,6 @@
     <script src="charts/bucket-selection.js"></script>
     <script src="charts/axis-tick-selection.js"></script>
     <script src="charts/label-click-selection.js"></script>
+    <script src="charts/combined-selection.js"></script>
 </body>
 </html>
