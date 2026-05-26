@@ -209,23 +209,3 @@ body {
 #combined-chart-area {
     margin-bottom: 20px;
 }
-
-.combined-label {
-    cursor: pointer;
-    padding: 4px 8px;
-    display: inline-block;
-    border-radius: 3px;
-    border-bottom: 2px solid transparent;
-    transition: all 0.15s;
-}
-
-.combined-label:hover {
-    color: #27ae60;
-    border-bottom-color: #27ae60;
-}
-
-.combined-label-selected {
-    font-weight: 700;
-    color: #27ae60;
-    border-bottom-color: #27ae60;
-}
