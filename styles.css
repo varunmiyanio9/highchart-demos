@@ -209,3 +209,25 @@ body {
 #combined-chart-area {
     margin-bottom: 20px;
 }
+
+.combined-toolbar {
+    display: flex;
+    gap: 20px;
+    padding: 12px 0;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.combined-toolbar label {
+    font-size: 13px;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.combined-toolbar select {
+    margin-left: 8px;
+    padding: 4px 8px;
+    border: 1px solid #bdc3c7;
+    border-radius: 3px;
+    font-size: 13px;
+}
