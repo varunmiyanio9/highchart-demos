@@ -151,7 +151,23 @@
         return currentFontWeight;
     }
 
+    function ensureFilter(chart) {
+        const svg = chart.container.querySelector('svg');
+        if (svg.querySelector('#combined-label-bg')) return;
+        const defs = svg.querySelector('defs') || svg.insertBefore(document.createElementNS('http://www.w3.org/2000/svg', 'defs'), svg.firstChild);
+        const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+        filter.setAttribute('id', 'combined-label-bg');
+        filter.setAttribute('x', '-0.05');
+        filter.setAttribute('y', '-0.15');
+        filter.setAttribute('width', '1.1');
+        filter.setAttribute('height', '1.4');
+        filter.innerHTML = '<feFlood flood-color="rgba(46, 204, 113, 0.15)" result="bg"/>' +
+            '<feMerge><feMergeNode in="bg"/><feMergeNode in="SourceGraphic"/></feMerge>';
+        defs.appendChild(filter);
+    }
+
     function applyLabelStyles(chart) {
+        ensureFilter(chart);
         const ticks = chart.xAxis[0].ticks;
         Object.keys(ticks).forEach(key => {
             const tick = ticks[key];
@@ -161,8 +177,10 @@
 
             if (selectedCategories.has(idx)) {
                 tick.label.css({ fontWeight: 'bold', color: '#27ae60', cursor: 'pointer' });
+                tick.label.element.style.filter = 'url(#combined-label-bg)';
             } else {
                 tick.label.css({ fontWeight: currentFontWeight, color: '#333333', cursor: 'pointer' });
+                tick.label.element.style.filter = '';
             }
         });
     }
@@ -305,12 +323,19 @@
             xAxis: {
                 categories: CATEGORIES,
                 crosshair: { width: 1, color: '#aaa', dashStyle: 'Dash' },
+                tickmarkPlacement: 'on',
+                tickWidth: 1,
+                tickLength: 6,
+                tickColor: '#333',
                 labels: {
                     style: { fontSize: currentFontSize, fontWeight: currentFontWeight }
                 }
             },
             yAxis: {
                 title: { text: 'Revenue ($K)' },
+                tickWidth: 1,
+                tickLength: 4,
+                tickColor: '#333',
                 labels: {
                     style: { fontSize: currentFontSize, fontWeight: currentFontWeight }
                 }
