@@ -231,3 +231,18 @@ body {
     border-radius: 3px;
     font-size: 13px;
 }
+
+#forecast-line-chart,
+#forecast-bar-chart,
+#forecast-stacked-chart,
+#forecast-area-chart,
+#forecast-bonus-chart {
+    margin-bottom: 30px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+#forecast-bonus-chart {
+    border-bottom: none;
+    margin-bottom: 0;
+}

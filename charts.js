@@ -5,7 +5,8 @@ const CHARTS = [
     { id: 'bucket-selection', name: 'Bucket Selection', description: 'Multi chart types (column/line/area) with shared selection state, plotBands, point.select()' },
     { id: 'tick-selection', name: 'Axis Tick Selection', description: 'External DOM buttons as axis ticks, roving tabindex, full keyboard without Highcharts conflicts' },
     { id: 'label-click', name: 'Label Click Selection', description: 'useHTML labels with event delegation, textContent identification (data-* stripped by Highcharts)' },
-    { id: 'combined-selection', name: 'Combined Selection', description: 'Pure SVG labels, background-only mouse select, bidirectional label+grid, font size/weight toolbar' }
+    { id: 'combined-selection', name: 'Combined Selection', description: 'Pure SVG labels, background-only mouse select, bidirectional label+grid, font size/weight toolbar' },
+    { id: 'forecast', name: 'Forecast', description: 'Line/Bar/Stacked/Area charts with historical vs forecast data, confidence bands, and error bars' }
 ];
 
 const CHART_INIT = {
@@ -13,7 +14,8 @@ const CHART_INIT = {
     'bucket-selection': () => { if (!window.bucketChart) initBucketSelectionChart(); },
     'tick-selection': () => { if (!window.tickChart) initTickSelectionChart(); },
     'label-click': () => { if (!window.labelChart) initLabelClickChart(); },
-    'combined-selection': () => { if (!window.combinedChart) initCombinedSelectionChart(); }
+    'combined-selection': () => { if (!window.combinedChart) initCombinedSelectionChart(); },
+    'forecast': () => { if (!window.forecastCharts) initForecastCharts(); }
 };
 
 function navigateTo(target) {

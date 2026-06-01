@@ -31,6 +31,7 @@
                     <li><a href="#" data-chart="tick-selection">Axis Tick Selection</a></li>
                     <li><a href="#" data-chart="label-click">Label Click Selection</a></li>
                     <li><a href="#" data-chart="combined-selection">Combined Selection</a></li>
+                    <li><a href="#" data-chart="forecast">Forecast</a></li>
                 </ul>
             </nav>
         </aside>
@@ -86,6 +87,15 @@
                     <div id="combined-content"></div>
                 </div>
             </div>
+            <div id="forecast" class="chart-container" style="display:none;">
+                <h2 class="bucket-section-title">Forecast Charts — Historical vs Predicted</h2>
+                <p class="bucket-section-hint">Each chart shows historical data (solid) and forecast data (dotted/translucent) with confidence bands. Orange line marks the forecast start.</p>
+                <div id="forecast-line-chart"></div>
+                <div id="forecast-bar-chart"></div>
+                <div id="forecast-stacked-chart"></div>
+                <div id="forecast-area-chart"></div>
+                <div id="forecast-bonus-chart"></div>
+            </div>
         </main>
     </div>
     <script src="charts/bar-chart.js"></script>
@@ -94,6 +104,7 @@
     <script src="charts/axis-tick-selection.js"></script>
     <script src="charts/label-click-selection.js"></script>
     <script src="charts/combined-selection.js"></script>
+    <script src="charts/forecast.js"></script>
     <script src="charts.js"></script>
 </body>
 </html>
