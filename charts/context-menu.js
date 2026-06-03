@@ -48,6 +48,87 @@ function initContextMenuCharts() {
         chart.redraw();
     }
 
+    // Custom: split a single series into 3 stacked sub-series
+    // Tracks original data so we can merge back later
+    var splitRegistry = {}; // { originalName: { data: [...], color: '...' } }
+
+    function splitSeriesToStack(chart, series) {
+        var name = series.name;
+        var data = series.options.data.slice();
+        var color = series.color;
+        var seriesIndex = series.index;
+
+        // Save original so we can restore on unstack
+        splitRegistry[name] = { data: data, color: color, index: seriesIndex };
+
+        // Split data into 3 sub-items that sum to original values
+        var sub1 = [], sub2 = [], sub3 = [];
+        for (var i = 0; i < data.length; i++) {
+            var val = data[i];
+            var a = Math.round(val * 0.45);
+            var b = Math.round(val * 0.30);
+            var c = val - a - b;
+            sub1.push(a);
+            sub2.push(b);
+            sub3.push(c);
+        }
+
+        // Remove original series
+        series.remove(false);
+
+        // Add 3 sub-series at the same position with stacking
+        chart.addSeries({
+            name: name + '-1', data: sub1, type: 'column',
+            stacking: 'normal', stack: name, color: color,
+            _splitParent: name
+        }, false);
+        chart.addSeries({
+            name: name + '-2', data: sub2, type: 'column',
+            stacking: 'normal', stack: name,
+            color: Highcharts.color(color).brighten(0.15).get(),
+            _splitParent: name
+        }, false);
+        chart.addSeries({
+            name: name + '-3', data: sub3, type: 'column',
+            stacking: 'normal', stack: name,
+            color: Highcharts.color(color).brighten(0.3).get(),
+            _splitParent: name
+        }, false);
+
+        chart.redraw();
+    }
+
+    // Custom: merge split sub-series back into original single series
+    function mergeSplitSeries(chart, parentName, newType) {
+        var original = splitRegistry[parentName];
+        if (!original) return;
+
+        // Remove all sub-series belonging to this parent
+        var toRemove = chart.series.filter(function (s) {
+            return s.options._splitParent === parentName;
+        });
+        toRemove.forEach(function (s) { s.remove(false); });
+
+        // Re-add original series with new type
+        chart.addSeries({
+            name: parentName, data: original.data, type: newType,
+            color: original.color, stacking: undefined
+        }, false);
+
+        chart.redraw();
+        delete splitRegistry[parentName];
+    }
+
+    // Check if a series is a split child
+    function getSplitParent(series) {
+        return series.options._splitParent || null;
+    }
+
+    // Check if a series name has been split
+    function isSplit(name) {
+        return !!splitRegistry[name];
+    }
+
     // =========================================================================
     // CHART 1: Highcharts-native exporting menu with custom menuItems
     // Everything here is Highcharts config — the library renders the menu.
@@ -187,7 +268,9 @@ function initContextMenuCharts() {
 
         // Custom: update menu header to show targeted series name
         if (targetSeries) {
-            menuSeriesLabel.textContent = 'Change Type: ' + targetSeries.name;
+            var parentName = getSplitParent(targetSeries);
+            var displayName = parentName || targetSeries.name;
+            menuSeriesLabel.textContent = 'Change Type: ' + displayName;
         } else {
             menuSeriesLabel.textContent = 'Change Type (all series)';
         }
@@ -235,10 +318,28 @@ function initContextMenuCharts() {
         if (type) {
             // Custom: apply type change only to the targeted series (not all)
             if (targetSeries) {
+                var parentName = getSplitParent(targetSeries);
+
                 if (type === 'stacked') {
-                    targetSeries.update({ type: 'column', stacking: 'normal' });
+                    if (parentName) {
+                        // Already stacked (this is a sub-series), do nothing
+                    } else if (isSplit(targetSeries.name)) {
+                        // Already split, do nothing
+                    } else {
+                        // Split this series into 3 stacked sub-series
+                        splitSeriesToStack(chart2, targetSeries);
+                    }
                 } else {
-                    targetSeries.update({ type: type, stacking: undefined });
+                    if (parentName) {
+                        // This is a sub-series — merge back into single series with new type
+                        mergeSplitSeries(chart2, parentName, type);
+                    } else if (isSplit(targetSeries.name)) {
+                        // Clicking the parent name somehow — merge back
+                        mergeSplitSeries(chart2, targetSeries.name, type);
+                    } else {
+                        // Normal series — just change type
+                        targetSeries.update({ type: type, stacking: undefined });
+                    }
                 }
             } else {
                 // Fallback: if right-clicked on empty area, change all series
@@ -267,7 +368,12 @@ function initContextMenuCharts() {
     function updateActiveIndicator() {
         var currentType = '';
         if (targetSeries) {
-            currentType = targetSeries.options.stacking === 'normal' ? 'stacked' : targetSeries.type;
+            var parentName = getSplitParent(targetSeries);
+            if (parentName || isSplit(targetSeries.name)) {
+                currentType = 'stacked';
+            } else {
+                currentType = targetSeries.type;
+            }
         }
         menu.querySelectorAll('[data-type]').forEach(function (el) {
             el.classList.toggle('ctx-menu-item--active', el.dataset.type === currentType);
