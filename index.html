@@ -35,11 +35,15 @@
                     <li><a href="#" data-chart="member-stacked-legend">Member Stacked Legend</a></li>
                     <li><a href="#" data-chart="member-stacked-legend-hc">Member Stacked Legend (HC)</a></li>
                     <li><a href="#" data-chart="multi-type-chart">Multi-Type Combined</a></li>
+                    <li><a href="#" data-chart="context-menu">Context Menu</a></li>
                 </ul>
             </nav>
         </aside>
         <main class="content">
-            <div id="bar-chart" class="chart-container"></div>
+            <div id="bar-chart" class="chart-container">
+                <div id="bar-chart-main"></div>
+                <p class="bucket-section-hint" style="margin-top:10px;"><strong>Custom: None</strong> — Pure Highcharts config. Column chart with accessibility point descriptions. No custom code needed.</p>
+            </div>
             <div id="axis-selection" class="chart-container" style="display:none;">
                 <div id="selection-chart"></div>
                 <div id="selection-detail" class="detail-panel">
@@ -47,6 +51,7 @@
                     <p class="hint">Click, Ctrl+Click, or drag to select bars. Use Tab → Arrow keys → Space for keyboard selection. Shift+Arrow for range select.</p>
                     <div id="detail-content"></div>
                 </div>
+                <p class="bucket-section-hint" style="margin-top:10px;"><strong>Custom:</strong> Keyboard multi-select (Space/Enter accumulate) — Highcharts' accessibility treats Space as plain click (deselects others). Also: Shift+Arrow range select via mouseOver hook, Escape to clear, and manual click handler (allowPointSelect disabled to control accumulate behavior).</p>
             </div>
             <div id="bucket-selection" class="chart-container" style="display:none;">
                 <h2 class="bucket-section-title">Bucket Selection — Multi Chart Types</h2>
@@ -59,6 +64,7 @@
                     <p class="hint">Click to select entire category. Ctrl+Click to multi-select. Drag to select range. Keyboard: Tab into chart → Arrow keys → Space to toggle. Escape to clear.</p>
                     <div id="bucket-content"></div>
                 </div>
+                <p class="bucket-section-hint" style="margin-top:10px;"><strong>Custom:</strong> Shared selection state (Set) across 3 chart types — Highcharts has no built-in cross-chart selection sync. syncAllCharts() propagates selection, plotBands highlight selected categories, and Shift+Arrow range select is implemented via global keydown tracking.</p>
             </div>
             <div id="tick-selection" class="chart-container" style="display:none;">
                 <div id="tick-chart"></div>
@@ -68,6 +74,7 @@
                     <p class="hint">Click buttons to select categories. Ctrl+Click for multi-select. Shift+Click for range. Keyboard: Tab into buttons → Arrow keys to move → Space to toggle. Escape to clear.</p>
                     <div id="tick-content"></div>
                 </div>
+                <p class="bucket-section-hint" style="margin-top:10px;"><strong>Custom:</strong> External DOM buttons as category selectors — Highcharts has NO native axis-label click/select event. HTML toolbar with roving tabindex pattern provides full keyboard accessibility without conflicting with Highcharts' internal focus management.</p>
             </div>
             <div id="label-click" class="chart-container" style="display:none;">
                 <div id="label-chart"></div>
@@ -76,6 +83,7 @@
                     <p class="hint">Click x-axis labels to select. Ctrl+Click for multi-select. Click chart background to clear.</p>
                     <div id="label-content"></div>
                 </div>
+                <p class="bucket-section-hint" style="margin-top:10px;"><strong>Custom:</strong> Clickable x-axis labels via useHTML + event delegation — Highcharts provides no label click event. Category index resolved via textContent (data-* attrs stripped by Highcharts HTML sanitization). PlotBands and label styles re-applied in redraw callback since plotBand changes destroy/recreate label DOM.</p>
             </div>
             <div id="combined-selection" class="chart-container" style="display:none;">
                 <h2 class="bucket-section-title">Combined Selection (SVG) — Bidirectional Label + Grid</h2>
@@ -89,6 +97,7 @@
                     <p class="hint">Drag to select range on grid. Click labels for single select. Ctrl+Click for multi. Shift+Arrow for range. Escape to clear.</p>
                     <div id="combined-content"></div>
                 </div>
+                <p class="bucket-section-hint" style="margin-top:10px;"><strong>Custom:</strong> Pure SVG label click (no useHTML) via tick.label.on('click') — undocumented but stable API. Background-only mouse select translates pixel→category index. Hover via .on('mouseover')/.css() since SVG has no CSS :hover. All handlers re-attached on every redraw because plotBands destroy/recreate tick elements. Font size/weight toolbar updates all 3 charts dynamically. SVG filter for label background highlight.</p>
             </div>
             <div id="forecast" class="chart-container" style="display:none;">
                 <h2 class="bucket-section-title">Forecast Charts — Historical vs Predicted</h2>
@@ -102,17 +111,57 @@
                 <div id="forecast-divider-left"></div>
                 <div id="forecast-tooltip-center"></div>
                 <div id="forecast-tooltip-left"></div>
+                <p class="bucket-section-hint" style="margin-top:10px;"><strong>Custom:</strong> Data transformation helpers only (padRight, padLeft, buildAreaRange, buildErrorBars, hexToRgba) — reshapes data into formats Highcharts expects. All visuals (plotLines, arearange, errorbar, dashStyle, linkedTo, stacking) are native Highcharts config. Charts 6–7 use native plotLine events for hover tooltip. Charts 8a–8b use chart.renderer to draw custom hoverable lines with callout labels — Highcharts plotLines don't support custom tooltip content on hover.</p>
             </div>
             <div id="member-stacked-legend-hc" class="chart-container" style="display:none;">
                 <div id="msl-hc-chart" style="height:480px;"></div>
+                <p class="bucket-section-hint" style="margin-top:10px;"><strong>Custom:</strong> Minimal — hover-dim via series.setState('inactive') attached to Highcharts-rendered legend DOM elements in chart.events.render callback. Dummy series (data:[]) used as group headers and dividers in the native legend. labelFormatter returns custom HTML for styled swatches/icons. All rendering is Highcharts-managed.</p>
             </div>
             <div id="multi-type-chart" class="chart-container chart-container--fullscreen" style="display:none;">
                 <div id="multi-type-chart-main"></div>
+                <p class="bucket-section-hint" style="margin-top:10px;"><strong>Custom: None</strong> — Pure Highcharts config. 5 series types (column, stacked column, line, area) in one chart using dual y-axes, stack IDs for independent stacking groups, and grouping for side-by-side columns. No custom JS logic.</p>
             </div>
             <div id="member-stacked-legend" class="chart-container" style="display:none;">
                 <div class="msl-wrap">
                     <div id="msl-chart"></div>
                     <div class="msl-legend" id="msl-legend-bar"></div>
+                </div>
+                <p class="bucket-section-hint" style="margin-top:10px;"><strong>Custom:</strong> Entire legend is external HTML — Highcharts' built-in legend cannot render grouped headers with member swatches and "|" dividers. Hover-dim via series.group.attr({opacity}) (internal SVG element, not public API). Click-toggle wires to series.show()/hide(). Visual feedback via .msl-off CSS class.</p>
+            </div>
+            <div id="context-menu" class="chart-container" style="display:none;">
+                <h2 class="bucket-section-title">Context Menu — Built-in & Custom Right-Click</h2>
+                <p class="bucket-section-hint">Chart 1: Highcharts built-in exporting menu customized with type switching options.<br>Chart 2: Right-click for a custom nested context menu (industry standard).</p>
+                <div id="ctx-builtin-chart" style="margin-bottom:30px;"></div>
+                <p class="bucket-section-hint" style="margin-top:0;"><strong>Chart 1 (hamburger menu)</strong> — 100% Highcharts config, zero custom code. The library renders and manages everything.</p>
+                <div id="ctx-custom-chart"></div>
+                <p class="bucket-section-hint" style="margin-top:0;"><strong>Chart 2 (right-click nested menu)</strong> — Fully custom implementation. Highcharts provides NO right-click menu, NO nested submenus, NO highlight locking, and NO per-series targeting. Only chart.hoverSeries, series.setState(), series.update(), chart.exportChart(), fullscreen, and print are Highcharts API calls.</p>
+                <!-- Custom context menu (hidden, positioned by JS on right-click) -->
+                <div id="ctx-custom-menu" class="ctx-menu" style="display:none;">
+                    <ul class="ctx-menu-list">
+                        <li class="ctx-menu-item ctx-menu-item--has-sub">
+                            <span class="ctx-menu-label" id="ctx-menu-series-label">Change Chart Type</span>
+                            <span class="ctx-menu-arrow">&#9654;</span>
+                            <ul class="ctx-menu-sub">
+                                <li class="ctx-menu-item" data-type="line">Line</li>
+                                <li class="ctx-menu-item" data-type="column">Bar (Column)</li>
+                                <li class="ctx-menu-item" data-type="area">Area</li>
+                                <li class="ctx-menu-item" data-type="stacked">Stacked Bar</li>
+                            </ul>
+                        </li>
+                        <li class="ctx-menu-separator"></li>
+                        <li class="ctx-menu-item ctx-menu-item--has-sub">
+                            <span class="ctx-menu-label">Export</span>
+                            <span class="ctx-menu-arrow">&#9654;</span>
+                            <ul class="ctx-menu-sub">
+                                <li class="ctx-menu-item" data-export="png">Download PNG</li>
+                                <li class="ctx-menu-item" data-export="svg">Download SVG</li>
+                                <li class="ctx-menu-item" data-export="pdf">Download PDF</li>
+                            </ul>
+                        </li>
+                        <li class="ctx-menu-separator"></li>
+                        <li class="ctx-menu-item" data-action="fullscreen">View Fullscreen</li>
+                        <li class="ctx-menu-item" data-action="print">Print Chart</li>
+                    </ul>
                 </div>
             </div>
         </main>
@@ -127,6 +176,7 @@
     <script src="charts/member-stacked-legend-hc.js"></script>
     <script src="charts/member-stacked-legend.js"></script>
     <script src="charts/multi-type-chart.js"></script>
+    <script src="charts/context-menu.js"></script>
     <script src="charts.js"></script>
 </body>
 </html>

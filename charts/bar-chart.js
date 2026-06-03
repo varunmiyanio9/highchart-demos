@@ -1,4 +1,4 @@
-Highcharts.chart('bar-chart', {
+Highcharts.chart('bar-chart-main', {
     chart: {
         type: 'column'
     },
