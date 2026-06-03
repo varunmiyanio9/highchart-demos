@@ -329,6 +329,127 @@ function initForecastCharts() {
         ]
     });
 
+    // ========================================
+    // CHART 8: Forecast with true left-edge line + custom hover tooltip
+    // [CUSTOM] Uses chart.renderer to draw line at plot area boundary
+    // and a tooltip label that shows/hides on hover
+    // Both center and left-edge versions with proper hoverable tooltip
+    // ========================================
+
+    // 8a: Center divider with custom tooltip
+    Highcharts.chart('forecast-tooltip-center', {
+        chart: {
+            type: 'column',
+            height: 420,
+            events: {
+                load: function () {
+                    var chart = this;
+                    var xPos = chart.xAxis[0].toPixels(forecastStart, false);
+
+                    var line = chart.renderer.path([
+                        'M', xPos, chart.plotTop,
+                        'L', xPos, chart.plotTop + chart.plotHeight
+                    ]).attr({
+                        stroke: '#f39c12',
+                        'stroke-width': 4,
+                        zIndex: 5,
+                        cursor: 'pointer'
+                    }).add();
+
+                    var tooltip = chart.renderer.label(
+                        'Forecast: ' + categories[forecastStart], 0, 0, 'callout'
+                    ).attr({
+                        fill: '#f39c12',
+                        padding: 8,
+                        r: 4,
+                        zIndex: 10
+                    }).css({
+                        color: '#fff',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                    }).add().hide();
+
+                    line.on('mouseover', function () {
+                        line.attr({ 'stroke-width': 6 });
+                        tooltip.attr({ x: xPos + 8, y: chart.plotTop + 20 }).show();
+                    });
+                    line.on('mouseout', function () {
+                        line.attr({ 'stroke-width': 4 });
+                        tooltip.hide();
+                    });
+                }
+            }
+        },
+        title: { text: 'Forecast Divider \u2014 Center with Hover Tooltip', align: 'left' },
+        subtitle: { text: 'Hover the yellow line to see a tooltip. Custom renderer line + label.', align: 'left' },
+        xAxis: { categories: categories },
+        yAxis: { title: { text: 'Total Sales' }, labels: { format: '${value:,.0f}' } },
+        tooltip: { shared: true, valuePrefix: '$', valueDecimals: 0 },
+        legend: { enabled: true },
+        series: [
+            { name: 'East', data: allData.east, color: colors.east },
+            { name: 'West', data: allData.west, color: colors.west },
+            { name: 'Central', data: allData.central, color: colors.central }
+        ]
+    });
+
+    // 8b: Left edge line with custom tooltip (line at plot area left boundary)
+    Highcharts.chart('forecast-tooltip-left', {
+        chart: {
+            type: 'column',
+            height: 420,
+            events: {
+                load: function () {
+                    var chart = this;
+                    var xPos = chart.plotLeft;
+
+                    var line = chart.renderer.path([
+                        'M', xPos, chart.plotTop,
+                        'L', xPos, chart.plotTop + chart.plotHeight
+                    ]).attr({
+                        stroke: '#f39c12',
+                        'stroke-width': 4,
+                        zIndex: 5,
+                        cursor: 'pointer'
+                    }).add();
+
+                    var tooltip = chart.renderer.label(
+                        'Forecast: ' + forecastOnlyCategories[0], 0, 0, 'callout'
+                    ).attr({
+                        fill: '#f39c12',
+                        padding: 8,
+                        r: 4,
+                        zIndex: 10
+                    }).css({
+                        color: '#fff',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                    }).add().hide();
+
+                    line.on('mouseover', function () {
+                        line.attr({ 'stroke-width': 6 });
+                        tooltip.attr({ x: xPos + 8, y: chart.plotTop + 20 }).show();
+                    });
+                    line.on('mouseout', function () {
+                        line.attr({ 'stroke-width': 4 });
+                        tooltip.hide();
+                    });
+                }
+            }
+        },
+        title: { text: 'Forecast Only \u2014 True Left Edge with Hover Tooltip', align: 'left' },
+        subtitle: { text: 'Yellow line at exact plot area left edge. Hover to see tooltip.', align: 'left' },
+        xAxis: { categories: forecastOnlyCategories },
+        yAxis: { title: { text: 'Total Sales' }, labels: { format: '${value:,.0f}' } },
+        tooltip: { shared: true, valuePrefix: '$', valueDecimals: 0 },
+        legend: { enabled: true },
+        series: [
+            { name: 'East', data: forecastData.east.slice(1), color: colors.east },
+            { name: 'West', data: forecastData.west.slice(1), color: colors.west },
+            { name: 'Central', data: forecastData.central.slice(1), color: colors.central }
+        ]
+    });
+
     window.forecastCharts = true;
 }
 

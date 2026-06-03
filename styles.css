@@ -250,13 +250,15 @@ body {
 #forecast-area-chart,
 #forecast-bonus-chart,
 #forecast-divider-center,
-#forecast-divider-left {
+#forecast-divider-left,
+#forecast-tooltip-center,
+#forecast-tooltip-left {
     margin-bottom: 30px;
     border-bottom: 1px solid #eee;
     padding-bottom: 10px;
 }
 
-#forecast-divider-left {
+#forecast-tooltip-left {
     border-bottom: none;
     margin-bottom: 0;
 }

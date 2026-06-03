@@ -6,7 +6,10 @@ const CHARTS = [
     { id: 'tick-selection', name: 'Axis Tick Selection', description: 'External DOM buttons as axis ticks, roving tabindex, full keyboard without Highcharts conflicts' },
     { id: 'label-click', name: 'Label Click Selection', description: 'useHTML labels with event delegation, textContent identification (data-* stripped by Highcharts)' },
     { id: 'combined-selection', name: 'Combined Selection', description: 'Pure SVG labels, background-only mouse select, bidirectional label+grid, font size/weight toolbar' },
-    { id: 'forecast', name: 'Forecast', description: 'Line/Bar/Stacked/Area charts with historical vs forecast data, confidence bands, and error bars' }
+    { id: 'forecast', name: 'Forecast', description: 'Line/Bar/Stacked/Area charts with historical vs forecast data, confidence bands, and error bars' },
+    { id: 'member-stacked-legend', name: 'Member Stacked Legend', description: 'Grouped stacked columns + line series with custom HTML legend: group headers, member swatches, "|" dividers, hover highlight and click toggle' },
+    { id: 'member-stacked-legend-hc', name: 'Member Stacked Legend (HC)', description: 'Same chart using Highcharts native legend: useHTML, labelFormatter, dummy group-header series, legendItemClick, chart.events.render + series.setState()' },
+    { id: 'multi-type-chart', name: 'Multi-Type Combined', description: 'Single chart combining Bar, Stacked Bar, Line, and Area series with dual y-axes' }
 ];
 
 const CHART_INIT = {
@@ -15,7 +18,9 @@ const CHART_INIT = {
     'tick-selection': () => { if (!window.tickChart) initTickSelectionChart(); },
     'label-click': () => { if (!window.labelChart) initLabelClickChart(); },
     'combined-selection': () => { if (!window.combinedChart) initCombinedSelectionChart(); },
-    'forecast': () => { if (!window.forecastCharts) initForecastCharts(); }
+    'forecast': () => { if (!window.forecastCharts) initForecastCharts(); },
+    'member-stacked-legend': () => { if (!window.mslChart) { window.mslChart = true; initMemberStackedLegendChart(); } },
+    'member-stacked-legend-hc': () => { if (!window.mslHCChart) { window.mslHCChart = true; initMemberStackedLegendHCChart(); } }
 };
 
 function navigateTo(target) {
