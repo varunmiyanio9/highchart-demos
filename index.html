@@ -32,6 +32,9 @@
                     <li><a href="#" data-chart="label-click">Label Click Selection</a></li>
                     <li><a href="#" data-chart="combined-selection">Combined Selection</a></li>
                     <li><a href="#" data-chart="forecast">Forecast</a></li>
+                    <li><a href="#" data-chart="member-stacked-legend">Member Stacked Legend</a></li>
+                    <li><a href="#" data-chart="member-stacked-legend-hc">Member Stacked Legend (HC)</a></li>
+                    <li><a href="#" data-chart="multi-type-chart">Multi-Type Combined</a></li>
                 </ul>
             </nav>
         </aside>
@@ -95,6 +98,20 @@
                 <div id="forecast-stacked-chart"></div>
                 <div id="forecast-area-chart"></div>
                 <div id="forecast-bonus-chart"></div>
+                <div id="forecast-divider-center"></div>
+                <div id="forecast-divider-left"></div>
+            </div>
+            <div id="member-stacked-legend-hc" class="chart-container" style="display:none;">
+                <div id="msl-hc-chart" style="height:480px;"></div>
+            </div>
+            <div id="multi-type-chart" class="chart-container chart-container--fullscreen" style="display:none;">
+                <div id="multi-type-chart-main"></div>
+            </div>
+            <div id="member-stacked-legend" class="chart-container" style="display:none;">
+                <div class="msl-wrap">
+                    <div id="msl-chart"></div>
+                    <div class="msl-legend" id="msl-legend-bar"></div>
+                </div>
             </div>
         </main>
     </div>
@@ -105,6 +122,9 @@
     <script src="charts/label-click-selection.js"></script>
     <script src="charts/combined-selection.js"></script>
     <script src="charts/forecast.js"></script>
+    <script src="charts/member-stacked-legend-hc.js"></script>
+    <script src="charts/member-stacked-legend.js"></script>
+    <script src="charts/multi-type-chart.js"></script>
     <script src="charts.js"></script>
 </body>
 </html>

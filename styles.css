@@ -71,6 +71,18 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+/* Full-screen variant — chart fills the entire content area */
+.chart-container--fullscreen {
+    padding: 0;
+    height: calc(100vh - 60px);  /* subtract header height */
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-container--fullscreen > div {
+    flex: 1;
+}
+
 .detail-panel {
     margin-top: 20px;
     padding: 20px;
@@ -236,13 +248,133 @@ body {
 #forecast-bar-chart,
 #forecast-stacked-chart,
 #forecast-area-chart,
-#forecast-bonus-chart {
+#forecast-bonus-chart,
+#forecast-divider-center,
+#forecast-divider-left {
     margin-bottom: 30px;
     border-bottom: 1px solid #eee;
     padding-bottom: 10px;
 }
 
-#forecast-bonus-chart {
+#forecast-divider-left {
     border-bottom: none;
     margin-bottom: 0;
+}
+
+/* =====================================================================
+ * Member Stacked Legend — custom grouped legend styles
+ * ===================================================================== */
+
+/* Wrapper keeps chart + legend together in one card */
+.msl-wrap {
+    display: flex;
+    flex-direction: column;
+}
+
+#msl-chart {
+    height: 460px;
+}
+
+/*
+ * .msl-legend — CUSTOM element that replaces the Highcharts built-in legend.
+ * Highcharts' legend.enabled:false hides the default panel; this div takes
+ * its place with grouped sections, dividers, and interactive items.
+ */
+.msl-legend {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    row-gap: 3px;
+    padding: 10px 4px 12px;
+    border-top: 1px solid #ededf0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Individual legend button — line item or member swatch */
+.msl-lg-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 7px;
+    font-size: 12px;
+    line-height: 1;
+    color: #16191d;
+    background: none;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    border-radius: 2px;
+    transition: opacity 0.18s ease;
+    font-family: inherit;
+}
+
+/* Hover background — applied via JS mouseenter/mouseleave */
+.msl-lg-item.hovbg {
+    background: #e8e8e8;
+}
+
+/* Hidden state — toggled via JS click; dims swatch and strikes label */
+.msl-lg-item.msl-off .msl-lg-label {
+    text-decoration: line-through;
+    color: #9aa0a8;
+}
+.msl-lg-item.msl-off .msl-sq,
+.msl-lg-item.msl-off .msl-lg-line,
+.msl-lg-item.msl-off .msl-chev {
+    opacity: 0.35;
+}
+
+/* Group header has a small left margin to visually separate from the divider */
+.msl-grp-start {
+    margin-left: 2px;
+}
+
+/* Label text */
+.msl-lg-label {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Bold label for group headers (e.g. "30d Forecast Accuracy :") */
+.msl-bold {
+    font-weight: 700;
+}
+
+/* Coloured square swatch for stacked-bar members */
+.msl-sq {
+    width: 11px;
+    height: 11px;
+    flex: 0 0 auto;
+    border-radius: 1px;
+}
+
+/* Coloured horizontal line swatch for line series */
+.msl-lg-line {
+    width: 22px;
+    height: 3px;
+    flex: 0 0 auto;
+    border-radius: 1px;
+}
+
+/* Bar-chart icon wrapping the group SVG icon */
+.msl-chev {
+    display: inline-flex;
+    align-items: center;
+    color: #5b6068;
+    margin-right: 1px;
+}
+
+/*
+ * Vertical pipe "|" divider between sections.
+ * Pure custom — Highcharts has no concept of legend section dividers.
+ */
+.msl-lg-divider {
+    width: 1px;
+    height: 18px;
+    background: #d4d4d8;
+    margin: 0 6px;
+    flex: 0 0 auto;
+    align-self: center;
 }

@@ -228,6 +228,117 @@ function initForecastCharts() {
         ]
     });
 
+    // ========================================
+    // CHART 6: Forecast Divider in Center (plain bars + hoverable yellow line)
+    // [HIGHCHARTS NATIVE] plotLines for vertical line, scatter for hover tooltip
+    // No dashed bars, no confidence bands — just the yellow line separates past/future
+    // ========================================
+    var allData = {
+        east: historicalData.east.concat(forecastData.east.slice(1)),
+        west: historicalData.west.concat(forecastData.west.slice(1)),
+        central: historicalData.central.concat(forecastData.central.slice(1))
+    };
+    var yMaxCenter = Math.max(
+        Math.max.apply(null, allData.east),
+        Math.max.apply(null, allData.west),
+        Math.max.apply(null, allData.central)
+    );
+
+    Highcharts.chart('forecast-divider-center', {
+        chart: { type: 'column', height: 420 },
+        title: { text: 'Forecast Divider \u2014 Center (Past vs Future)', align: 'left' },
+        subtitle: { text: 'Plain bars with a single hoverable yellow line marking forecast start', align: 'left' },
+        xAxis: {
+            categories: categories,
+            plotLines: [{
+                color: '#f39c12',
+                width: 3,
+                value: forecastStart,
+                zIndex: 5,
+                label: {
+                    text: '\u25BC ' + categories[forecastStart],
+                    verticalAlign: 'top',
+                    textAlign: 'center',
+                    rotation: 0,
+                    y: 12,
+                    style: { color: '#f39c12', fontWeight: 'bold', fontSize: '11px' }
+                }
+            }]
+        },
+        yAxis: { title: { text: 'Total Sales' }, labels: { format: '${value:,.0f}' } },
+        tooltip: { shared: true, valuePrefix: '$', valueDecimals: 0 },
+        legend: { enabled: true },
+        series: [
+            { name: 'East', data: allData.east, color: colors.east },
+            { name: 'West', data: allData.west, color: colors.west },
+            { name: 'Central', data: allData.central, color: colors.central },
+            // [HIGHCHARTS NATIVE] Scatter point on the yellow line for hover tooltip
+            {
+                name: 'Forecast Start',
+                type: 'scatter',
+                data: [{ x: forecastStart, y: yMaxCenter * 1.05 }],
+                marker: { symbol: 'triangle-down', radius: 8, fillColor: '#f39c12', lineColor: '#f39c12' },
+                tooltip: { pointFormat: '<b>Forecast begins at: {point.category}</b>' },
+                showInLegend: false,
+                zIndex: 10
+            }
+        ]
+    });
+
+    // ========================================
+    // CHART 7: Forecast Only (future ticks only, yellow line at left edge)
+    // [HIGHCHARTS NATIVE] plotLines at value -0.5 to stick to left edge
+    // Only forecast data shown, no historical
+    // ========================================
+    var forecastOnlyCategories = categories.slice(forecastStart + 1); // ['2023','2024',...]
+    var yMaxForecast = Math.max(
+        Math.max.apply(null, forecastData.east.slice(1)),
+        Math.max.apply(null, forecastData.west.slice(1)),
+        Math.max.apply(null, forecastData.central.slice(1))
+    );
+
+    Highcharts.chart('forecast-divider-left', {
+        chart: { type: 'column', height: 420 },
+        title: { text: 'Forecast Only \u2014 Yellow Line at Left Edge', align: 'left' },
+        subtitle: { text: 'Only future data shown. Yellow line at left edge indicates all data is forecasted.', align: 'left' },
+        xAxis: {
+            categories: forecastOnlyCategories,
+            min: -0.5,
+            plotLines: [{
+                color: '#f39c12',
+                width: 3,
+                value: -0.5,
+                zIndex: 5,
+                label: {
+                    text: 'Forecast \u2192',
+                    verticalAlign: 'middle',
+                    textAlign: 'left',
+                    rotation: 0,
+                    x: 6,
+                    style: { color: '#f39c12', fontWeight: 'bold', fontSize: '11px' }
+                }
+            }]
+        },
+        yAxis: { title: { text: 'Total Sales' }, labels: { format: '${value:,.0f}' } },
+        tooltip: { shared: true, valuePrefix: '$', valueDecimals: 0 },
+        legend: { enabled: true },
+        series: [
+            { name: 'East', data: forecastData.east.slice(1), color: colors.east },
+            { name: 'West', data: forecastData.west.slice(1), color: colors.west },
+            { name: 'Central', data: forecastData.central.slice(1), color: colors.central },
+            // [HIGHCHARTS NATIVE] Scatter point on yellow line for hover tooltip
+            {
+                name: 'Forecast Marker',
+                type: 'scatter',
+                data: [{ x: -0.4, y: yMaxForecast * 1.05 }],
+                marker: { symbol: 'triangle', radius: 8, fillColor: '#f39c12', lineColor: '#f39c12' },
+                tooltip: { pointFormat: '<b>All data is forecast (from ' + categories[forecastStart + 1] + ')</b>' },
+                showInLegend: false,
+                zIndex: 10
+            }
+        ]
+    });
+
     window.forecastCharts = true;
 }
 
