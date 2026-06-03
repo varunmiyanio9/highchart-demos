@@ -145,7 +145,7 @@ function initMemberStackedLegendChart() {
 
         title: {
             text: 'Inventory Profile',
-            align: 'left',
+            align: 'center',
             style: { fontSize: '14px', fontWeight: '600', color: '#16191d' }
         },
         subtitle: { text: null },

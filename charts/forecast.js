@@ -72,8 +72,8 @@ function initForecastCharts() {
     // ========================================
     Highcharts.chart('forecast-line-chart', {
         chart: { type: 'line', height: 420 },
-        title: { text: 'Sales Forecast \u2014 Line Chart', align: 'left' },
-        subtitle: { text: 'Solid lines: historical | Dotted lines with confidence bands: forecast', align: 'left' },
+        title: { text: 'Sales Forecast \u2014 Line Chart', align: 'center' },
+        subtitle: { text: 'Solid lines: historical | Dotted lines with confidence bands: forecast', align: 'center' },
         xAxis: { categories: categories, plotLines: [plotLineConfig] },
         yAxis: { title: { text: 'Total Sales' }, labels: { format: '${value:,.0f}' } },
         tooltip: { valuePrefix: '$', valueDecimals: 0 },
@@ -105,8 +105,8 @@ function initForecastCharts() {
     // ========================================
     Highcharts.chart('forecast-bar-chart', {
         chart: { type: 'column', height: 420 },
-        title: { text: 'Sales Forecast \u2014 Bar Chart', align: 'left' },
-        subtitle: { text: 'Solid bars: historical | Dashed translucent bars with error whiskers: forecast', align: 'left' },
+        title: { text: 'Sales Forecast \u2014 Bar Chart', align: 'center' },
+        subtitle: { text: 'Solid bars: historical | Dashed translucent bars with error whiskers: forecast', align: 'center' },
         xAxis: { categories: categories, plotLines: [plotLineConfig] },
         yAxis: { title: { text: 'Total Sales' }, labels: { format: '${value:,.0f}' } },
         tooltip: { valuePrefix: '$', valueDecimals: 0 },
@@ -134,8 +134,8 @@ function initForecastCharts() {
     // ========================================
     Highcharts.chart('forecast-stacked-chart', {
         chart: { type: 'column', height: 420 },
-        title: { text: 'Sales Forecast \u2014 Stacked Bar', align: 'left' },
-        subtitle: { text: 'Solid stacked bars: historical | Translucent stacked bars with dashed borders: forecast', align: 'left' },
+        title: { text: 'Sales Forecast \u2014 Stacked Bar', align: 'center' },
+        subtitle: { text: 'Solid stacked bars: historical | Translucent stacked bars with dashed borders: forecast', align: 'center' },
         xAxis: { categories: categories, plotLines: [plotLineConfig] },
         yAxis: { title: { text: 'Total Sales' }, labels: { format: '${value:,.0f}' } },
         tooltip: { valuePrefix: '$', valueDecimals: 0 },
@@ -162,8 +162,8 @@ function initForecastCharts() {
     // ========================================
     Highcharts.chart('forecast-area-chart', {
         chart: { type: 'area', height: 420 },
-        title: { text: 'Sales Forecast \u2014 Area Chart', align: 'left' },
-        subtitle: { text: 'Solid filled areas: historical | Lighter areas with dotted lines and confidence bands: forecast', align: 'left' },
+        title: { text: 'Sales Forecast \u2014 Area Chart', align: 'center' },
+        subtitle: { text: 'Solid filled areas: historical | Lighter areas with dotted lines and confidence bands: forecast', align: 'center' },
         xAxis: { categories: categories, plotLines: [plotLineConfig] },
         yAxis: { title: { text: 'Total Sales' }, labels: { format: '${value:,.0f}' } },
         tooltip: { valuePrefix: '$', valueDecimals: 0 },
@@ -195,8 +195,8 @@ function initForecastCharts() {
     // ========================================
     Highcharts.chart('forecast-bonus-chart', {
         chart: { type: 'spline', height: 420 },
-        title: { text: 'Sales Forecast \u2014 Gradient Fade', align: 'left' },
-        subtitle: { text: 'Forecast confidence fades with distance from last known data point', align: 'left' },
+        title: { text: 'Sales Forecast \u2014 Gradient Fade', align: 'center' },
+        subtitle: { text: 'Forecast confidence fades with distance from last known data point', align: 'center' },
         xAxis: {
             categories: categories,
             // [HIGHCHARTS NATIVE] plotBands for shaded forecast zone
@@ -241,8 +241,8 @@ function initForecastCharts() {
 
     Highcharts.chart('forecast-divider-center', {
         chart: { type: 'column', height: 420 },
-        title: { text: 'Forecast Divider \u2014 Center (Past vs Future)', align: 'left' },
-        subtitle: { text: 'Plain bars with a hoverable yellow line marking forecast start', align: 'left' },
+        title: { text: 'Forecast Divider \u2014 Center (Past vs Future)', align: 'center' },
+        subtitle: { text: 'Plain bars with a hoverable yellow line marking forecast start', align: 'center' },
         xAxis: {
             categories: categories,
             plotLines: [{
@@ -289,8 +289,8 @@ function initForecastCharts() {
 
     Highcharts.chart('forecast-divider-left', {
         chart: { type: 'column', height: 420 },
-        title: { text: 'Forecast Only \u2014 Yellow Line at Left Edge', align: 'left' },
-        subtitle: { text: 'Only future data shown. Yellow line at left edge indicates all data is forecasted.', align: 'left' },
+        title: { text: 'Forecast Only \u2014 Yellow Line at Left Edge', align: 'center' },
+        subtitle: { text: 'Only future data shown. Yellow line at left edge indicates all data is forecasted.', align: 'center' },
         xAxis: {
             categories: forecastOnlyCategories,
             plotLines: [{
@@ -380,8 +380,8 @@ function initForecastCharts() {
                 }
             }
         },
-        title: { text: 'Forecast Divider \u2014 Center with Hover Tooltip', align: 'left' },
-        subtitle: { text: 'Hover the yellow line to see a tooltip. Custom renderer line + label.', align: 'left' },
+        title: { text: 'Forecast Divider \u2014 Center with Hover Tooltip', align: 'center' },
+        subtitle: { text: 'Hover the yellow line to see a tooltip. Custom renderer line + label.', align: 'center' },
         xAxis: { categories: categories },
         yAxis: { title: { text: 'Total Sales' }, labels: { format: '${value:,.0f}' } },
         tooltip: { shared: true, valuePrefix: '$', valueDecimals: 0 },
@@ -437,8 +437,8 @@ function initForecastCharts() {
                 }
             }
         },
-        title: { text: 'Forecast Only \u2014 True Left Edge with Hover Tooltip', align: 'left' },
-        subtitle: { text: 'Yellow line at exact plot area left edge. Hover to see tooltip.', align: 'left' },
+        title: { text: 'Forecast Only \u2014 True Left Edge with Hover Tooltip', align: 'center' },
+        subtitle: { text: 'Yellow line at exact plot area left edge. Hover to see tooltip.', align: 'center' },
         xAxis: { categories: forecastOnlyCategories },
         yAxis: { title: { text: 'Total Sales' }, labels: { format: '${value:,.0f}' } },
         tooltip: { shared: true, valuePrefix: '$', valueDecimals: 0 },

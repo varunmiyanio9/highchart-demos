@@ -469,3 +469,34 @@ body {
     font-size: 11px;
     color: #2563eb;
 }
+
+/* ==========================================================================
+ * Chart ID Badge — auto-injected by chart-registry.js
+ * ========================================================================== */
+
+.chart-id-badge {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    background: #34495e;
+    color: #ecf0f1;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    z-index: 10;
+    user-select: all;
+    opacity: 0.85;
+    pointer-events: auto;
+}
+
+.chart-id-badge:hover {
+    opacity: 1;
+}
+
+.chart-descriptions-auto strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #2c3e50;
+}

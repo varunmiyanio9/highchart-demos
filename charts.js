@@ -1,36 +1,26 @@
-// Sidebar chart registry — single source of truth for navigation
-const CHARTS = [
-    { id: 'bar-chart', name: 'Bar Chart', description: 'Basic bar chart with export and accessibility' },
-    { id: 'axis-selection', name: 'Axis Selection', description: 'Click/Ctrl+Click/drag to select bars, keyboard via accessibility module' },
-    { id: 'bucket-selection', name: 'Bucket Selection', description: 'Multi chart types (column/line/area) with shared selection state, plotBands, point.select()' },
-    { id: 'tick-selection', name: 'Axis Tick Selection', description: 'External DOM buttons as axis ticks, roving tabindex, full keyboard without Highcharts conflicts' },
-    { id: 'label-click', name: 'Label Click Selection', description: 'useHTML labels with event delegation, textContent identification (data-* stripped by Highcharts)' },
-    { id: 'combined-selection', name: 'Combined Selection', description: 'Pure SVG labels, background-only mouse select, bidirectional label+grid, font size/weight toolbar' },
-    { id: 'forecast', name: 'Forecast', description: 'Line/Bar/Stacked/Area charts with historical vs forecast data, confidence bands, and error bars' },
-    { id: 'member-stacked-legend', name: 'Member Stacked Legend', description: 'Grouped stacked columns + line series with custom HTML legend: group headers, member swatches, "|" dividers, hover highlight and click toggle' },
-    { id: 'member-stacked-legend-hc', name: 'Member Stacked Legend (HC)', description: 'Same chart using Highcharts native legend: useHTML, labelFormatter, dummy group-header series, legendItemClick, chart.events.render + series.setState()' },
-    { id: 'multi-type-chart', name: 'Multi-Type Combined', description: 'Single chart combining Bar, Stacked Bar, Line, and Area series with dual y-axes' },
-    { id: 'context-menu', name: 'Context Menu', description: 'Built-in exporting menu with type switching, and custom right-click nested context menu' }
-];
+// Sidebar pages — derived from PAGE_META (defined in chart-registry.js)
+var CHARTS = Object.keys(PAGE_META).map(function (id) {
+    return { id: id, name: PAGE_META[id].name, description: PAGE_META[id].description };
+});
 
-const CHART_INIT = {
-    'axis-selection': () => { if (!window.selectionChart) initAxisSelectionChart(); },
-    'bucket-selection': () => { if (!window.bucketChart) initBucketSelectionChart(); },
-    'tick-selection': () => { if (!window.tickChart) initTickSelectionChart(); },
-    'label-click': () => { if (!window.labelChart) initLabelClickChart(); },
-    'combined-selection': () => { if (!window.combinedChart) initCombinedSelectionChart(); },
-    'forecast': () => { if (!window.forecastCharts) initForecastCharts(); },
-    'member-stacked-legend': () => { if (!window.mslChart) { window.mslChart = true; initMemberStackedLegendChart(); } },
-    'member-stacked-legend-hc': () => { if (!window.mslHCChart) { window.mslHCChart = true; initMemberStackedLegendHCChart(); } },
-    'context-menu': () => { if (!window.ctxMenuInit) { window.ctxMenuInit = true; initContextMenuCharts(); } }
+var CHART_INIT = {
+    'axis-selection': function () { if (!window.selectionChart) initAxisSelectionChart(); },
+    'bucket-selection': function () { if (!window.bucketChart) initBucketSelectionChart(); },
+    'tick-selection': function () { if (!window.tickChart) initTickSelectionChart(); },
+    'label-click': function () { if (!window.labelChart) initLabelClickChart(); },
+    'combined-selection': function () { if (!window.combinedChart) initCombinedSelectionChart(); },
+    'forecast': function () { if (!window.forecastCharts) initForecastCharts(); },
+    'member-stacked-legend': function () { if (!window.mslChart) { window.mslChart = true; initMemberStackedLegendChart(); } },
+    'member-stacked-legend-hc': function () { if (!window.mslHCChart) { window.mslHCChart = true; initMemberStackedLegendHCChart(); } },
+    'context-menu': function () { if (!window.ctxMenuInit) { window.ctxMenuInit = true; initContextMenuCharts(); } }
 };
 
 function navigateTo(target) {
-    document.querySelectorAll('.sidebar a').forEach(l => l.classList.remove('active'));
-    const link = document.querySelector('.sidebar a[data-chart="' + target + '"]');
+    document.querySelectorAll('.sidebar a').forEach(function (l) { l.classList.remove('active'); });
+    var link = document.querySelector('.sidebar a[data-chart="' + target + '"]');
     if (link) link.classList.add('active');
 
-    document.querySelectorAll('.content > .chart-container').forEach(c => {
+    document.querySelectorAll('.content > .chart-container').forEach(function (c) {
         c.style.display = c.id === target ? '' : 'none';
     });
 
@@ -39,15 +29,18 @@ function navigateTo(target) {
     location.hash = target;
 }
 
-document.querySelectorAll('.sidebar a').forEach(link => {
+document.querySelectorAll('.sidebar a').forEach(function (link) {
     link.addEventListener('click', function (e) {
         e.preventDefault();
         navigateTo(this.dataset.chart);
     });
 });
 
+// Auto-render chart descriptions + ID badges from registry
+renderChartDescriptions();
+
 // Load from URL hash or default to first chart
-const hashTarget = location.hash.slice(1);
+var hashTarget = location.hash.slice(1);
 if (hashTarget && document.getElementById(hashTarget)) {
     navigateTo(hashTarget);
 } else {

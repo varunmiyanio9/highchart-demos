@@ -29,12 +29,12 @@
  *
  * ── CUSTOM (minimal) ────────────────────────────────────────────────
  *
- *  Inside chart.events.render:
- *    • Find each legend item's DOM element via s.legendItem.group.element
- *      (Highcharts-rendered but accessed directly for event attachment)
- *    • Attach mouseenter → series.setState('inactive') on others
- *    • Attach mouseleave → series.setState('') to restore
- *    • Guard with el._hcHover flag so events are not re-bound on redraws
+ *  Inside chart.events.render (group headers ONLY):
+ *    • Individual series hover-dim is handled natively by Highcharts
+ *    • Group headers are dummy series (data:[]) — Highcharts' built-in
+ *      hover would dim everything except the empty dummy, which is wrong.
+ *      We attach mouseenter on group headers to setState('hover') on
+ *      their member series and setState('inactive') on the rest.
  *
  *  labelFormatter HTML strings (the colored square/line/icon/divider
  *  visuals are inline HTML returned from a Highcharts callback)
@@ -105,6 +105,22 @@ function initMemberStackedLegendHCChart() {
         '<line x1="8" y1="13" x2="8" y2="4"/>' +
         '<line x1="12" y1="13" x2="12" y2="9.5"/>' +
         '<line x1="2" y1="13.5" x2="14" y2="13.5"/></svg>';
+
+    /* ── SVG STACKED BAR ICON (segmented bars indicating stacking) ── */
+
+    const STACKED_BAR_ICON =
+        '<svg style="display:inline-block;vertical-align:middle;margin-right:3px;flex-shrink:0"' +
+        ' width="13" height="13" viewBox="0 0 16 16" fill="none">' +
+        '<rect x="2" y="8" width="3.5" height="2.5" fill="#6b7079" rx="0.3"/>' +
+        '<rect x="2" y="5" width="3.5" height="2.5" fill="#9aa0a8" rx="0.3"/>' +
+        '<rect x="2" y="2" width="3.5" height="2.5" fill="#c4c8cd" rx="0.3"/>' +
+        '<rect x="6.5" y="6" width="3.5" height="4.5" fill="#6b7079" rx="0.3"/>' +
+        '<rect x="6.5" y="3" width="3.5" height="2.5" fill="#9aa0a8" rx="0.3"/>' +
+        '<rect x="6.5" y="0.5" width="3.5" height="2" fill="#c4c8cd" rx="0.3"/>' +
+        '<rect x="11" y="7" width="3.5" height="3.5" fill="#6b7079" rx="0.3"/>' +
+        '<rect x="11" y="4.5" width="3.5" height="2" fill="#9aa0a8" rx="0.3"/>' +
+        '<rect x="11" y="2.5" width="3.5" height="1.5" fill="#c4c8cd" rx="0.3"/>' +
+        '<line x1="1" y1="11" x2="15" y2="11" stroke="#6b7079" stroke-width="0.8"/></svg>';
 
     /* ── BUILD SERIES ARRAY ───────────────────────────────────────── */
 
@@ -246,7 +262,7 @@ function initMemberStackedLegendHCChart() {
             marginLeft: 68,
             marginRight: 62,
             marginTop: 44,
-            marginBottom: 44,
+            marginBottom: 120,
             style: {
                 fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
             },
@@ -254,68 +270,53 @@ function initMemberStackedLegendHCChart() {
             /*
              * chart.events.render — HIGHCHARTS LIFECYCLE HOOK
              *
-             * Fires after every redraw. Used here for the ONE piece of
-             * minimal custom wiring: attaching mouseenter/mouseleave events
-             * to Highcharts-generated legend item DOM elements.
+             * Individual series legend hover (dim others, highlight self)
+             * is handled 100% natively by Highcharts via states.inactive.
              *
-             * Why needed: Highcharts fires chart-area hover events
-             * (series.events.mouseOver/Out) but NOT legend-item hover events.
-             * Attaching them here is the smallest possible custom step.
-             *
-             * What it calls: series.setState() — HIGHCHARTS PUBLIC API
+             * Group headers are dummy series (data:[]) — Highcharts'
+             * built-in hover would dim everything except the empty dummy.
+             * We override ONLY group headers to highlight their members.
              */
             events: {
                 render: function () {
                     var c = this;
+                    /*
+                     * Minimal custom wiring — ONLY for group headers.
+                     * Individual series get Highcharts' built-in legend
+                     * hover (dims others via states.inactive) for free.
+                     *
+                     * Group headers are dummy series (data:[]) so Highcharts'
+                     * built-in hover would dim everything except the empty
+                     * dummy — wrong. We override to highlight the group's
+                     * member series instead.
+                     */
                     c.series.forEach(function (s) {
                         var custom = (s.options && s.options.custom) || {};
-                        if (!s.legendItem) return;
+                        if (!custom.isGroupHeader || !custom.memberIds) return;
+                        if (!s.legendItem || !s.legendItem.group) return;
 
-                        /*
-                         * s.legendItem.group — Highcharts-rendered SVG <g>
-                         * wrapping both the symbol slot and the HTML label.
-                         * Accessing .element gives the real DOM node.
-                         */
-                        var grp = s.legendItem.group;
-                        if (!grp || !grp.element) return;
-                        var el = grp.element;
-
-                        /* Guard: bind events only once per element */
-                        if (el._hcHover) return;
-                        el._hcHover = true;
-
-                        /* No hover interaction on dividers */
-                        if (custom.isDivider) return;
+                        var el = s.legendItem.group.element;
+                        if (el._hcGroupHover) return;
+                        el._hcGroupHover = true;
 
                         el.addEventListener('mouseenter', function () {
-                            /* Build the set of series IDs that should stay bright */
-                            var focusIds;
-                            if (custom.isGroupHeader && custom.memberIds) {
-                                focusIds = custom.memberIds;
-                            } else {
-                                focusIds = [s.options.id];
-                            }
                             var focusSet = {};
-                            focusIds.forEach(function (id) { focusSet[id] = true; });
+                            custom.memberIds.forEach(function (id) { focusSet[id] = true; });
 
-                            /*
-                             * series.setState('inactive') — HIGHCHARTS PUBLIC API
-                             * Applies plotOptions.series.states.inactive.opacity
-                             * (= 0.15) to all series not in the focus set.
-                             */
                             c.series.forEach(function (other) {
                                 var oc = (other.options && other.options.custom) || {};
                                 if (oc.isDivider || oc.isGroupHeader) return;
-                                if (!focusSet[other.options.id]) {
-                                    other.setState('inactive');  // HIGHCHARTS PUBLIC API
+                                if (focusSet[other.options.id]) {
+                                    other.setState('hover');
+                                } else {
+                                    other.setState('inactive');
                                 }
                             });
                         });
 
                         el.addEventListener('mouseleave', function () {
-                            /* series.setState('') — HIGHCHARTS PUBLIC API: restore */
                             c.series.forEach(function (other) {
-                                other.setState('');  // HIGHCHARTS PUBLIC API
+                                other.setState('');
                             });
                         });
                     });
@@ -325,7 +326,7 @@ function initMemberStackedLegendHCChart() {
 
         title: {
             text: 'Inventory Profile',
-            align: 'left',
+            align: 'center',
             style: { fontSize: '14px', fontWeight: '600', color: '#16191d' }
         },
         subtitle: { text: null },
@@ -342,24 +343,41 @@ function initMemberStackedLegendHCChart() {
          *                          series is inactive (legend item click off)
          */
         legend: {
-            enabled: true,                  // HIGHCHARTS OPTION
-            useHTML: true,                  // HIGHCHARTS OPTION
+            enabled: true,
+            useHTML: true,
             layout: 'horizontal',
             align: 'left',
             verticalAlign: 'bottom',
+            /*
+             * alignColumns: false — stops Highcharts from aligning items into
+             * a table grid. Items flow sequentially left-to-right with just
+             * itemDistance (20px) gap between each. They wrap naturally like
+             * inline text rather than snapping to column positions.
+             */
+            alignColumns: false,
+            maxHeight: 85,
+            navigation: {
+                activeColor: '#2563eb',
+                inactiveColor: '#ccc',
+                arrowSize: 12,
+                animation: true,
+                style: { fontWeight: 'bold', color: '#333', fontSize: '12px' }
+            },
             padding: 8,
-            itemMarginTop: 2,
-            itemMarginBottom: 2,
-            symbolWidth: 0,                 // HIGHCHARTS OPTION: suppress auto symbol
-            symbolHeight: 0,                // HIGHCHARTS OPTION
-            symbolPadding: 0,               // HIGHCHARTS OPTION
+            itemMarginTop: 1,
+            itemMarginBottom: 1,
+            itemDistance: 8,
+            symbolWidth: 0,
+            symbolHeight: 0,
+            symbolPadding: 0,
             itemStyle: {
                 fontWeight: 'normal',
-                fontSize: '12px',
+                fontSize: '11.5px',
                 color: '#16191d',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                lineHeight: '20px'
             },
-            itemHoverStyle: { color: '#16191d' },
+            itemHoverStyle: { fontWeight: 'bold', color: '#2563eb' },
 
             /*
              * labelFormatter — HIGHCHARTS OPTION
@@ -378,41 +396,41 @@ function initMemberStackedLegendHCChart() {
                 /* "|" DIVIDER — styled pipe character */
                 if (custom.isDivider) {
                     return '<span style="' +
-                        'display:inline-block;width:1px;height:18px;' +
+                        'display:inline-block;width:1px;height:14px;' +
                         'background:#d4d4d8;vertical-align:middle;' +
-                        'margin:0 6px;pointer-events:none;' +
+                        'margin:0 4px;pointer-events:none;' +
                     '"></span>';
                 }
 
-                /* GROUP HEADER — bar icon + bold label */
+                /* GROUP HEADER — stacked bar icon + bold label */
                 if (custom.isGroupHeader) {
-                    return '<span style="display:inline-flex;align-items:center;gap:4px;">' +
-                        BAR_ICON +
-                        '<b style="font-weight:700;color:#16191d;">' + this.name + ' :</b>' +
+                    return '<span style="display:inline-flex;align-items:center;gap:4px;height:20px;line-height:20px;">' +
+                        STACKED_BAR_ICON +
+                        '<b style="font-weight:700;color:#16191d;font-size:11.5px;">' + this.name + ' :</b>' +
                     '</span>';
                 }
 
                 /* LINE SERIES — horizontal color stripe + name */
                 if (custom.isLine) {
-                    return '<span style="display:inline-flex;align-items:center;gap:5px;">' +
+                    return '<span style="display:inline-flex;align-items:center;gap:5px;height:20px;line-height:20px;">' +
                         '<span style="' +
-                            'display:inline-block;width:22px;height:3px;' +
+                            'display:inline-block;width:20px;height:3px;' +
                             'background:' + custom.lineColor + ';' +
                             'border-radius:1px;flex-shrink:0;' +
                         '"></span>' +
-                        '<span>' + this.name + '</span>' +
+                        '<span style="font-size:11.5px;">' + this.name + '</span>' +
                     '</span>';
                 }
 
                 /* MEMBER (stacked column) — colored square + name */
                 if (custom.isMember) {
-                    return '<span style="display:inline-flex;align-items:center;gap:5px;">' +
+                    return '<span style="display:inline-flex;align-items:center;gap:4px;height:20px;line-height:20px;">' +
                         '<span style="' +
-                            'display:inline-block;width:11px;height:11px;' +
+                            'display:inline-block;width:10px;height:10px;' +
                             'background:' + custom.memberColor + ';' +
                             'border-radius:1px;flex-shrink:0;' +
                         '"></span>' +
-                        '<span>' + this.name + '</span>' +
+                        '<span style="font-size:11.5px;">' + this.name + '</span>' +
                     '</span>';
                 }
 
