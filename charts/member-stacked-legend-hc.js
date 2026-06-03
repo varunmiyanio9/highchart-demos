@@ -10,6 +10,9 @@
  *  legend.enabled: true           Turns on Highcharts' legend engine
  *  legend.useHTML: true           Legend item labels become real HTML
  *  legend.labelFormatter          Callback → returns HTML string per item
+ *  legend.alignColumns: false     Inline flow (no grid) — items wrap like text
+ *  legend.maxHeight               Caps legend box → triggers pagination arrows
+ *  legend.navigation              Pagination arrow config (color, size, style)
  *  legend.symbolWidth/Height: 0   Suppresses the auto SVG symbol so our
  *                                 HTML label is the sole visual indicator
  *  legend.symbolPadding: 0        Removes gap between (now-invisible)
@@ -21,8 +24,8 @@
  *                                 false cancels default (used on dummy
  *                                 group-header and divider series)
  *  chart.events.render            Lifecycle hook; fires after every
- *                                 redraw — used to wire mouseenter/leave
- *                                 on Highcharts-generated legend elements
+ *                                 redraw — used to override setState on
+ *                                 group-header dummy series
  *  series.setState('inactive'|'') PUBLIC API — dims / restores a series
  *  chart.get(id)                  PUBLIC API — looks up series by id
  *  series.show() / series.hide()  PUBLIC API — visibility toggle
@@ -33,8 +36,8 @@
  *    • Individual series hover-dim is handled natively by Highcharts
  *    • Group headers are dummy series (data:[]) — Highcharts' built-in
  *      hover would dim everything except the empty dummy, which is wrong.
- *      We attach mouseenter on group headers to setState('hover') on
- *      their member series and setState('inactive') on the rest.
+ *      We override setState on group headers to redirect to their member
+ *      series — Highcharts' native legend hover triggers the override.
  *
  *  labelFormatter HTML strings (the colored square/line/icon/divider
  *  visuals are inline HTML returned from a Highcharts callback)
@@ -42,6 +45,36 @@
  *  Dummy series (data: []) used as group headers and dividers —
  *  a documented Highcharts pattern; events.legendItemClick returns false
  *  on these to prevent default show/hide behavior
+ *
+ * ── KNOWN ISSUES / QUESTIONS FOR HIGHCHARTS SUPPORT ─────────────────
+ *
+ *  1. alignColumns:false + maxHeight pagination:
+ *     With alignColumns:false, Highcharts' internal height measurement
+ *     for the legend doesn't reliably produce an exact N-row cutoff.
+ *     maxHeight values don't map predictably to visible rows — sometimes
+ *     1 row shows when 2 are expected, or a 3rd row is half-clipped.
+ *     QUESTION: Is there a way to get row-exact pagination with
+ *     alignColumns:false + useHTML:true?
+ *
+ *  2. Uneven itemDistance after group headers:
+ *     itemDistance applies uniformly to all legend items, but visually
+ *     the gap after a group-header item appears wider than between
+ *     member items. Possibly due to useHTML item width calculation
+ *     adding internal padding. Negative margin on labelFormatter HTML
+ *     clips the label text.
+ *     QUESTION: Is there per-item spacing control, or a way to reduce
+ *     the gap specifically after group-header legend items?
+ *
+ *  3. Combined group headers for shared members (FUTURE):
+ *     If two stacked groups share the same member names (e.g., both
+ *     "Forecast" and "Fulfillment" have Supplier_A..O), we want ONE
+ *     legend entry per member controlling BOTH stacks. Display:
+ *       "Group_A / Group_B: ■ Member1 ■ Member2 ..."
+ *     linkedTo hides the series from legend entirely — we need them
+ *     individually addressable in the chart but sharing a legend entry.
+ *     QUESTION: Is there a native pattern for one legend item
+ *     controlling multiple series across different stacks?
+ *
  * ======================================================================= */
 
 function initMemberStackedLegendHCChart() {
@@ -58,69 +91,77 @@ function initMemberStackedLegendHCChart() {
             id: 'forecast',
             label: '30d Forecast Accuracy',
             members: [
-                { id: 'sup_a', name: 'Supplier_A',     color: '#FFC107', data: [82,98,76,66,104,93,82,87,102,112,91,80,87] },
-                { id: 'sup_b', name: 'Supplier_B',     color: '#E07B28', data: [72,84,68,62, 88,78,72,74, 88, 98,80,70,74] },
-                { id: 'sup_c', name: 'Supplier_C',     color: '#8B5E2E', data: [66,72,62,56, 78,72,67,70, 80, 88,74,65,70] },
-                { id: 'sup_d', name: 'Supplier_D',     color: '#5A3010', data: [60,66,56,50, 72,66,61,64, 74, 82,67,59,64] },
-                { id: 'sup_e', name: 'Supplier_E',     color: '#2E1408', data: [55,61,51,46, 66,61,56,59, 69, 76,62,54,59] }
+                { id: 'sup_a',  name: 'Supplier_A',  color: '#FFC107', data: [82,98,76,66,104,93,82,87,102,112,91,80,87] },
+                { id: 'sup_b',  name: 'Supplier_B',  color: '#FFD54F', data: [72,84,68,62,88,78,72,74,88,98,80,70,74] },
+                { id: 'sup_c',  name: 'Supplier_C',  color: '#F9A825', data: [66,72,62,56,78,72,67,70,80,88,74,65,70] },
+                { id: 'sup_d',  name: 'Supplier_D',  color: '#E07B28', data: [60,66,56,50,72,66,61,64,74,82,67,59,64] },
+                { id: 'sup_e',  name: 'Supplier_E',  color: '#EF6C00', data: [55,61,51,46,66,61,56,59,69,76,62,54,59] },
+                { id: 'sup_f',  name: 'Supplier_F',  color: '#D84315', data: [50,57,47,42,61,56,51,54,64,70,57,50,54] },
+                { id: 'sup_g',  name: 'Supplier_G',  color: '#BF360C', data: [46,53,43,39,57,52,48,50,60,66,53,47,50] },
+                { id: 'sup_h',  name: 'Supplier_H',  color: '#8B5E2E', data: [43,49,40,36,53,49,44,47,56,62,50,44,47] },
+                { id: 'sup_i',  name: 'Supplier_I',  color: '#A1887F', data: [40,46,37,33,50,45,41,44,52,58,47,41,44] },
+                { id: 'sup_j',  name: 'Supplier_J',  color: '#795548', data: [37,43,35,30,47,42,38,41,49,54,44,38,41] },
+                { id: 'sup_k',  name: 'Supplier_K',  color: '#6D4C41', data: [35,40,32,28,44,39,35,38,46,51,41,36,38] },
+                { id: 'sup_l',  name: 'Supplier_L',  color: '#5D4037', data: [32,37,30,26,41,37,33,35,43,48,38,33,35] },
+                { id: 'sup_m',  name: 'Supplier_M',  color: '#5A3010', data: [30,35,28,24,38,34,30,33,40,45,36,31,33] },
+                { id: 'sup_n',  name: 'Supplier_N',  color: '#3E2723', data: [28,32,26,22,36,32,28,30,37,42,33,29,30] },
+                { id: 'sup_o',  name: 'Supplier_O',  color: '#2E1408', data: [25,30,24,20,33,29,25,28,35,39,31,26,28] }
             ]
         },
         {
             id: 'fulfillment',
             label: 'Order Fulfillment Vol',
             members: [
-                { id: 'reg_n', name: 'Region_North',   color: '#1A3A5C', data: [78,82,72,67, 88,80,74,77, 90, 98,82,74,78] },
-                { id: 'reg_s', name: 'Region_South',   color: '#00BCD4', data: [68,74,64,60, 78,70,65,68, 80, 88,72,65,69] },
-                { id: 'reg_e', name: 'Region_East',    color: '#0097A7', data: [62,67,60,54, 72,65,60,63, 73, 80,67,60,64] },
-                { id: 'reg_w', name: 'Region_West',    color: '#F48FB1', data: [57,62,54,49, 67,60,55,58, 68, 74,62,55,59] },
-                { id: 'reg_c', name: 'Region_Central', color: '#1565C0', data: [52,57,50,45, 62,55,50,53, 63, 68,57,50,54] }
+                { id: 'reg_n',  name: 'Region_North',     color: '#0D47A1', data: [78,82,72,67,88,80,74,77,90,98,82,74,78] },
+                { id: 'reg_s',  name: 'Region_South',     color: '#1565C0', data: [68,74,64,60,78,70,65,68,80,88,72,65,69] },
+                { id: 'reg_e',  name: 'Region_East',      color: '#1976D2', data: [62,67,60,54,72,65,60,63,73,80,67,60,64] },
+                { id: 'reg_w',  name: 'Region_West',      color: '#1E88E5', data: [57,62,54,49,67,60,55,58,68,74,62,55,59] },
+                { id: 'reg_c',  name: 'Region_Central',   color: '#2196F3', data: [52,57,50,45,62,55,50,53,63,68,57,50,54] },
+                { id: 'reg_ne', name: 'Region_NorthEast', color: '#42A5F5', data: [48,53,46,42,58,52,47,50,59,64,53,47,50] },
+                { id: 'reg_nw', name: 'Region_NorthWest', color: '#64B5F6', data: [45,50,43,39,55,49,44,47,56,61,50,44,47] },
+                { id: 'reg_se', name: 'Region_SouthEast', color: '#90CAF9', data: [42,47,40,36,52,46,41,44,53,58,47,41,44] },
+                { id: 'reg_sw', name: 'Region_SouthWest', color: '#00BCD4', data: [39,44,37,34,49,43,38,41,50,55,44,38,41] },
+                { id: 'reg_is', name: 'Region_Islands',   color: '#0097A7', data: [36,41,35,31,46,41,36,38,47,52,41,36,38] },
+                { id: 'reg_mt', name: 'Region_Mountain',  color: '#00838F', data: [34,38,32,29,43,38,33,36,44,49,39,33,36] },
+                { id: 'reg_pl', name: 'Region_Plains',    color: '#006064', data: [31,36,30,27,40,36,31,33,42,46,36,31,33] },
+                { id: 'reg_cs', name: 'Region_Coast',     color: '#1A3A5C', data: [29,33,28,25,38,33,29,31,39,43,34,29,31] },
+                { id: 'reg_hl', name: 'Region_Highland',  color: '#F48FB1', data: [27,31,26,23,35,31,27,29,37,41,32,27,29] },
+                { id: 'reg_vl', name: 'Region_Valley',    color: '#EC407A', data: [25,28,24,21,33,29,25,27,34,38,29,25,27] }
             ]
         },
         {
             id: 'safety',
             label: 'Safety Stock Exceptions',
             members: [
-                { id: 'sku_ph', name: 'SKU_Pharma',      color: '#E91E63', data: [62,70,57,52, 74,67,60,64, 74, 82,70,62,66] },
-                { id: 'sku_el', name: 'SKU_Electronics', color: '#F8BBD0', data: [54,60,50,46, 64,58,52,55, 65, 72,60,54,58] },
-                { id: 'sku_fm', name: 'SKU_FMCG',        color: '#E53935', data: [50,55,46,42, 59,53,48,51, 60, 67,55,49,53] },
-                { id: 'sku_au', name: 'SKU_Auto',        color: '#B71C1C', data: [46,50,42,38, 54,48,44,46, 55, 61,50,45,48] },
-                { id: 'sku_ap', name: 'SKU_Apparel',     color: '#7B0012', data: [42,46,38,34, 49,44,40,42, 50, 56,45,40,44] }
+                { id: 'sku_ph', name: 'SKU_Pharma',       color: '#E91E63', data: [62,70,57,52,74,67,60,64,74,82,70,62,66] },
+                { id: 'sku_el', name: 'SKU_Electronics',  color: '#F06292', data: [54,60,50,46,64,58,52,55,65,72,60,54,58] },
+                { id: 'sku_fm', name: 'SKU_FMCG',         color: '#E53935', data: [50,55,46,42,59,53,48,51,60,67,55,49,53] },
+                { id: 'sku_au', name: 'SKU_Auto',         color: '#C62828', data: [46,50,42,38,54,48,44,46,55,61,50,45,48] },
+                { id: 'sku_ap', name: 'SKU_Apparel',      color: '#B71C1C', data: [42,46,38,34,49,44,40,42,50,56,45,40,44] },
+                { id: 'sku_ch', name: 'SKU_Chemical',     color: '#880E4F', data: [39,43,35,31,46,41,37,39,47,53,42,38,41] },
+                { id: 'sku_fd', name: 'SKU_Food',         color: '#AD1457', data: [36,40,33,29,43,38,34,36,44,50,40,35,38] },
+                { id: 'sku_bv', name: 'SKU_Beverage',     color: '#C2185B', data: [34,37,31,27,40,36,32,34,41,47,37,33,35] },
+                { id: 'sku_tx', name: 'SKU_Textile',      color: '#D32F2F', data: [31,35,28,25,38,33,29,31,39,44,35,30,33] },
+                { id: 'sku_hw', name: 'SKU_Hardware',     color: '#EF5350', data: [29,32,26,23,35,31,27,29,36,41,32,28,30] },
+                { id: 'sku_sw', name: 'SKU_Software',     color: '#F44336', data: [27,30,24,21,33,29,25,27,34,38,30,26,28] },
+                { id: 'sku_en', name: 'SKU_Energy',       color: '#FF5252', data: [25,28,22,19,30,27,23,25,31,36,28,24,26] },
+                { id: 'sku_lg', name: 'SKU_Logistics',    color: '#FF8A80', data: [23,26,20,18,28,25,21,23,29,33,26,22,24] },
+                { id: 'sku_md', name: 'SKU_Medical',      color: '#F8BBD0', data: [21,24,19,16,26,23,19,21,27,31,24,20,22] },
+                { id: 'sku_ag', name: 'SKU_Agriculture',  color: '#7B0012', data: [19,22,17,14,24,21,18,19,25,28,22,19,20] }
             ]
         }
     ];
 
     const LINES = [
-        { id: 'tsc',  name: 'Total Supplier Capacity',    color: '#1a2940', yAxis: 0, data: [840,875,810,780,840,835,800,820,910,870,800,765,830] },
-        { id: 'llti', name: 'Logistics Lead Time Index',  color: '#808080', yAxis: 0, data: [455,440,475,445,490,465,450,460,500,520,475,450,465] },
+        { id: 'tsc',  name: 'Total Supplier Capacity',    color: '#1a2940', yAxis: 0, data: [1640,1675,1510,1480,1640,1635,1500,1520,1710,1770,1600,1465,1530] },
+        { id: 'llti', name: 'Logistics Lead Time Index',  color: '#808080', yAxis: 0, data: [955,940,975,945,990,965,950,960,1100,1120,975,950,965] },
         { id: 'mdb',  name: 'Market Demand Baseline',     color: '#27AE60', yAxis: 1, data: [255,295,315,270,355,335,305,290,360,335,360,328,340] }
     ];
 
-    /* ── SVG BAR ICON (embedded in labelFormatter HTML) ──────────── */
-
-    const BAR_ICON =
-        '<svg style="display:inline-block;vertical-align:middle;margin-right:3px;flex-shrink:0"' +
-        ' width="13" height="13" viewBox="0 0 16 16" fill="none"' +
-        ' stroke="currentColor" stroke-width="1.6" stroke-linecap="round">' +
-        '<line x1="4" y1="13" x2="4" y2="7"/>' +
-        '<line x1="8" y1="13" x2="8" y2="4"/>' +
-        '<line x1="12" y1="13" x2="12" y2="9.5"/>' +
-        '<line x1="2" y1="13.5" x2="14" y2="13.5"/></svg>';
-
-    /* ── SVG STACKED BAR ICON (segmented bars indicating stacking) ── */
+    /* ── STACKED BAR ICON (Material Symbols font icon from CDN) ──── */
 
     const STACKED_BAR_ICON =
-        '<svg style="display:inline-block;vertical-align:middle;margin-right:3px;flex-shrink:0"' +
-        ' width="13" height="13" viewBox="0 0 16 16" fill="none">' +
-        '<rect x="2" y="8" width="3.5" height="2.5" fill="#6b7079" rx="0.3"/>' +
-        '<rect x="2" y="5" width="3.5" height="2.5" fill="#9aa0a8" rx="0.3"/>' +
-        '<rect x="2" y="2" width="3.5" height="2.5" fill="#c4c8cd" rx="0.3"/>' +
-        '<rect x="6.5" y="6" width="3.5" height="4.5" fill="#6b7079" rx="0.3"/>' +
-        '<rect x="6.5" y="3" width="3.5" height="2.5" fill="#9aa0a8" rx="0.3"/>' +
-        '<rect x="6.5" y="0.5" width="3.5" height="2" fill="#c4c8cd" rx="0.3"/>' +
-        '<rect x="11" y="7" width="3.5" height="3.5" fill="#6b7079" rx="0.3"/>' +
-        '<rect x="11" y="4.5" width="3.5" height="2" fill="#9aa0a8" rx="0.3"/>' +
-        '<rect x="11" y="2.5" width="3.5" height="1.5" fill="#c4c8cd" rx="0.3"/>' +
-        '<line x1="1" y1="11" x2="15" y2="11" stroke="#6b7079" stroke-width="0.8"/></svg>';
+        '<span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;margin-right:2px;color:#6b7079;line-height:1;">stacked_bar_chart</span>';
 
     /* ── BUILD SERIES ARRAY ───────────────────────────────────────── */
 
@@ -262,7 +303,6 @@ function initMemberStackedLegendHCChart() {
             marginLeft: 68,
             marginRight: 62,
             marginTop: 44,
-            marginBottom: 120,
             style: {
                 fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
             },
@@ -270,55 +310,44 @@ function initMemberStackedLegendHCChart() {
             /*
              * chart.events.render — HIGHCHARTS LIFECYCLE HOOK
              *
-             * Individual series legend hover (dim others, highlight self)
-             * is handled 100% natively by Highcharts via states.inactive.
-             *
-             * Group headers are dummy series (data:[]) — Highcharts'
-             * built-in hover would dim everything except the empty dummy.
-             * We override ONLY group headers to highlight their members.
+             * Override setState on group-header dummy series so that
+             * Highcharts' NATIVE legend hover redirects to members.
+             * Individual series hover is 100% native — no custom code.
              */
             events: {
                 render: function () {
                     var c = this;
-                    /*
-                     * Minimal custom wiring — ONLY for group headers.
-                     * Individual series get Highcharts' built-in legend
-                     * hover (dims others via states.inactive) for free.
-                     *
-                     * Group headers are dummy series (data:[]) so Highcharts'
-                     * built-in hover would dim everything except the empty
-                     * dummy — wrong. We override to highlight the group's
-                     * member series instead.
-                     */
                     c.series.forEach(function (s) {
                         var custom = (s.options && s.options.custom) || {};
                         if (!custom.isGroupHeader || !custom.memberIds) return;
-                        if (!s.legendItem || !s.legendItem.group) return;
+                        if (s._stateOverridden) return;
+                        s._stateOverridden = true;
 
-                        var el = s.legendItem.group.element;
-                        if (el._hcGroupHover) return;
-                        el._hcGroupHover = true;
-
-                        el.addEventListener('mouseenter', function () {
-                            var focusSet = {};
-                            custom.memberIds.forEach(function (id) { focusSet[id] = true; });
-
-                            c.series.forEach(function (other) {
-                                var oc = (other.options && other.options.custom) || {};
-                                if (oc.isDivider || oc.isGroupHeader) return;
-                                if (focusSet[other.options.id]) {
-                                    other.setState('hover');
-                                } else {
-                                    other.setState('inactive');
-                                }
-                            });
-                        });
-
-                        el.addEventListener('mouseleave', function () {
-                            c.series.forEach(function (other) {
-                                other.setState('');
-                            });
-                        });
+                        s.setState = function (state) {
+                            var memberIds = custom.memberIds;
+                            if (state === 'hover') {
+                                c.series.forEach(function (other) {
+                                    var oc = (other.options && other.options.custom) || {};
+                                    if (oc.isDivider || oc.isGroupHeader) return;
+                                    if (memberIds.indexOf(other.options.id) !== -1) {
+                                        Highcharts.Series.prototype.setState.call(other, 'hover');
+                                    } else {
+                                        Highcharts.Series.prototype.setState.call(other, 'inactive');
+                                    }
+                                });
+                            } else if (state === 'inactive') {
+                                memberIds.forEach(function (id) {
+                                    var ms = c.get(id);
+                                    if (ms) Highcharts.Series.prototype.setState.call(ms, 'inactive');
+                                });
+                            } else {
+                                c.series.forEach(function (other) {
+                                    var oc = (other.options && other.options.custom) || {};
+                                    if (oc.isDivider || oc.isGroupHeader) return;
+                                    Highcharts.Series.prototype.setState.call(other, '');
+                                });
+                            }
+                        };
                     });
                 }
             }
@@ -339,8 +368,7 @@ function initMemberStackedLegendHCChart() {
          * symbolWidth/Height: 0    Hides the auto-generated SVG symbol so
          *                          our HTML label carries the color indicator
          * symbolPadding: 0         Removes gap between hidden symbol and label
-         * states.inactive.opacity  Highcharts dims the item to 0.4 when its
-         *                          series is inactive (legend item click off)
+         * maxHeight                Caps legend height → triggers pagination
          */
         legend: {
             enabled: true,
@@ -348,14 +376,8 @@ function initMemberStackedLegendHCChart() {
             layout: 'horizontal',
             align: 'left',
             verticalAlign: 'bottom',
-            /*
-             * alignColumns: false — stops Highcharts from aligning items into
-             * a table grid. Items flow sequentially left-to-right with just
-             * itemDistance (20px) gap between each. They wrap naturally like
-             * inline text rather than snapping to column positions.
-             */
             alignColumns: false,
-            maxHeight: 85,
+            maxHeight: 100,
             navigation: {
                 activeColor: '#2563eb',
                 inactiveColor: '#ccc',
@@ -364,9 +386,9 @@ function initMemberStackedLegendHCChart() {
                 style: { fontWeight: 'bold', color: '#333', fontSize: '12px' }
             },
             padding: 8,
-            itemMarginTop: 1,
-            itemMarginBottom: 1,
-            itemDistance: 8,
+            itemMarginTop: 3,
+            itemMarginBottom: 3,
+            itemDistance: 6,
             symbolWidth: 0,
             symbolHeight: 0,
             symbolPadding: 0,
@@ -398,15 +420,15 @@ function initMemberStackedLegendHCChart() {
                     return '<span style="' +
                         'display:inline-block;width:1px;height:14px;' +
                         'background:#d4d4d8;vertical-align:middle;' +
-                        'margin:0 4px;pointer-events:none;' +
+                        'pointer-events:none;' +
                     '"></span>';
                 }
 
                 /* GROUP HEADER — stacked bar icon + bold label */
                 if (custom.isGroupHeader) {
-                    return '<span style="display:inline-flex;align-items:center;gap:4px;height:20px;line-height:20px;">' +
+                    return '<span style="display:inline-flex;align-items:center;gap:2px;height:20px;line-height:20px;">' +
                         STACKED_BAR_ICON +
-                        '<b style="font-weight:700;color:#16191d;font-size:11.5px;">' + this.name + ' :</b>' +
+                        '<b style="font-weight:700;color:#16191d;font-size:11.5px;">' + this.name + ':</b>' +
                     '</span>';
                 }
 
@@ -459,7 +481,7 @@ function initMemberStackedLegendHCChart() {
         yAxis: [
             {
                 /* Primary left axis */
-                min: 0, max: 1000, tickAmount: 5,
+                min: 0, max: 2000, tickAmount: 5,
                 title: { text: null },
                 labels: {
                     formatter: function () {
