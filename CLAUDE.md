@@ -35,8 +35,9 @@ Every chart instance has a unique ID (e.g., `FC-1`, `CTX-2`) defined in `chart-r
 | FC-7 | forecast | forecast-divider-left | Forecast Divider — Left Edge |
 | FC-8 | forecast | forecast-tooltip-center | Renderer Tooltip — Center |
 | FC-9 | forecast | forecast-tooltip-left | Renderer Tooltip — Left Edge |
-| MSL-1 | member-stacked-legend | msl-chart | Member Stacked Legend (Custom HTML) |
-| MHC-1 | member-stacked-legend-hc | msl-hc-chart | Member Stacked Legend (HC Native) |
+| SBL-1 | stack-bar-legends-default | sbl-default-chart | Stack Bar Legends (Default) |
+| MHC-1 | member-stacked-legend-hc | msl-hc-chart | Stack Bar Legends (min-custom) |
+| MSL-1 | member-stacked-legend | msl-chart | Stack Bar Legends (full-custom) |
 | MTC-1 | multi-type-chart | multi-type-chart-main | Multi-Type Combined Chart |
 | CTX-1 | context-menu | ctx-builtin-chart | Context Menu — Built-in Exporting |
 | CTX-2 | context-menu | ctx-custom-chart | Context Menu — Custom Right-Click |

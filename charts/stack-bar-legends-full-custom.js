@@ -1,5 +1,5 @@
 /* =======================================================================
- * Member Stacked Legend — Highcharts implementation
+ * Stack Bar Legends — Highcharts implementation
  *
  * WHAT IS HIGHCHARTS DEFAULT vs CUSTOM?
  * ─────────────────────────────────────────────────────────────────────
@@ -38,36 +38,96 @@ function initMemberStackedLegendChart() {
      */
     const GROUPS = [
         {
-            id: 'forecast',
-            label: '30d Forecast Accuracy',
+            id: 'product1',
+            label: 'Product-1',
             members: [
-                { name: 'Supplier_A',     color: '#FFC107', data: [82,98,76,66,104,93,82,87,102,112,91,80,87] },
-                { name: 'Supplier_B',     color: '#E07B28', data: [72,84,68,62, 88,78,72,74, 88, 98,80,70,74] },
-                { name: 'Supplier_C',     color: '#8B5E2E', data: [66,72,62,56, 78,72,67,70, 80, 88,74,65,70] },
-                { name: 'Supplier_D',     color: '#5A3010', data: [60,66,56,50, 72,66,61,64, 74, 82,67,59,64] },
-                { name: 'Supplier_E',     color: '#2E1408', data: [55,61,51,46, 66,61,56,59, 69, 76,62,54,59] }
+                { name: 'Item-1',  color: '#FFC107', data: [82,98,76,66,104,93,82,87,102,112,91,80,87] },
+                { name: 'Item-2',  color: '#FFD54F', data: [72,84,68,62,88,78,72,74,88,98,80,70,74] },
+                { name: 'Item-3',  color: '#F9A825', data: [66,72,62,56,78,72,67,70,80,88,74,65,70] },
+                { name: 'Item-4',  color: '#E07B28', data: [60,66,56,50,72,66,61,64,74,82,67,59,64] },
+                { name: 'Item-5',  color: '#EF6C00', data: [55,61,51,46,66,61,56,59,69,76,62,54,59] },
+                { name: 'Item-6',  color: '#D84315', data: [50,57,47,42,61,56,51,54,64,70,57,50,54] },
+                { name: 'Item-7',  color: '#BF360C', data: [46,53,43,39,57,52,48,50,60,66,53,47,50] },
+                { name: 'Item-8',  color: '#8B5E2E', data: [43,49,40,36,53,49,44,47,56,62,50,44,47] },
+                { name: 'Item-9',  color: '#A1887F', data: [40,46,37,33,50,45,41,44,52,58,47,41,44] },
+                { name: 'Item-10', color: '#795548', data: [37,43,35,30,47,42,38,41,49,54,44,38,41] },
+                { name: 'Item-11', color: '#6D4C41', data: [35,40,32,28,44,39,35,38,46,51,41,36,38] },
+                { name: 'Item-12', color: '#5D4037', data: [32,37,30,26,41,37,33,35,43,48,38,33,35] },
+                { name: 'Item-13', color: '#5A3010', data: [30,35,28,24,38,34,30,33,40,45,36,31,33] },
+                { name: 'Item-14', color: '#3E2723', data: [28,32,26,22,36,32,28,30,37,42,33,29,30] },
+                { name: 'Item-15', color: '#2E1408', data: [25,30,24,20,33,29,25,28,35,39,31,26,28] },
+                { name: 'Item-16', color: '#FF8F00', data: [23,28,22,18,31,27,23,26,33,37,29,24,26] },
+                { name: 'Item-17', color: '#F57F17', data: [21,26,20,17,29,25,21,24,31,35,27,22,24] },
+                { name: 'Item-18', color: '#E65100', data: [19,24,18,15,27,23,19,22,29,33,25,20,22] },
+                { name: 'Item-19', color: '#DD2C00', data: [17,22,16,14,25,21,17,20,27,31,23,18,20] },
+                { name: 'Item-20', color: '#BF360C', data: [15,20,15,12,23,19,15,18,25,29,21,16,18] },
+                { name: 'Item-21', color: '#8D6E63', data: [14,18,13,11,21,17,14,16,23,27,19,15,16] },
+                { name: 'Item-22', color: '#6D4C41', data: [12,16,12,10,19,16,12,14,21,25,17,13,15] },
+                { name: 'Item-23', color: '#4E342E', data: [11,15,11,9,17,14,11,13,19,23,16,12,13] },
+                { name: 'Item-24', color: '#3E2723', data: [10,13,10,8,16,13,10,11,18,21,14,10,12] },
+                { name: 'Item-25', color: '#1B0000', data: [9,12,9,7,14,11,9,10,16,19,13,9,10] }
             ]
         },
         {
-            id: 'fulfillment',
-            label: 'Order Fulfillment Vol',
+            id: 'product2',
+            label: 'Product-2',
             members: [
-                { name: 'Region_North',   color: '#1A3A5C', data: [78,82,72,67, 88,80,74,77, 90, 98,82,74,78] },
-                { name: 'Region_South',   color: '#00BCD4', data: [68,74,64,60, 78,70,65,68, 80, 88,72,65,69] },
-                { name: 'Region_East',    color: '#0097A7', data: [62,67,60,54, 72,65,60,63, 73, 80,67,60,64] },
-                { name: 'Region_West',    color: '#F48FB1', data: [57,62,54,49, 67,60,55,58, 68, 74,62,55,59] },
-                { name: 'Region_Central', color: '#1565C0', data: [52,57,50,45, 62,55,50,53, 63, 68,57,50,54] }
+                { name: 'Item-1',  color: '#0D47A1', data: [78,82,72,67,88,80,74,77,90,98,82,74,78] },
+                { name: 'Item-2',  color: '#1565C0', data: [68,74,64,60,78,70,65,68,80,88,72,65,69] },
+                { name: 'Item-3',  color: '#1976D2', data: [62,67,60,54,72,65,60,63,73,80,67,60,64] },
+                { name: 'Item-4',  color: '#1E88E5', data: [57,62,54,49,67,60,55,58,68,74,62,55,59] },
+                { name: 'Item-5',  color: '#2196F3', data: [52,57,50,45,62,55,50,53,63,68,57,50,54] },
+                { name: 'Item-6',  color: '#42A5F5', data: [48,53,46,42,58,52,47,50,59,64,53,47,50] },
+                { name: 'Item-7',  color: '#64B5F6', data: [45,50,43,39,55,49,44,47,56,61,50,44,47] },
+                { name: 'Item-8',  color: '#90CAF9', data: [42,47,40,36,52,46,41,44,53,58,47,41,44] },
+                { name: 'Item-9',  color: '#00BCD4', data: [39,44,37,34,49,43,38,41,50,55,44,38,41] },
+                { name: 'Item-10', color: '#0097A7', data: [36,41,35,31,46,41,36,38,47,52,41,36,38] },
+                { name: 'Item-11', color: '#00838F', data: [34,38,32,29,43,38,33,36,44,49,39,33,36] },
+                { name: 'Item-12', color: '#006064', data: [31,36,30,27,40,36,31,33,42,46,36,31,33] },
+                { name: 'Item-13', color: '#1A3A5C', data: [29,33,28,25,38,33,29,31,39,43,34,29,31] },
+                { name: 'Item-14', color: '#F48FB1', data: [27,31,26,23,35,31,27,29,37,41,32,27,29] },
+                { name: 'Item-15', color: '#EC407A', data: [25,28,24,21,33,29,25,27,34,38,29,25,27] },
+                { name: 'Item-16', color: '#0277BD', data: [23,26,22,19,31,27,23,25,32,36,27,23,25] },
+                { name: 'Item-17', color: '#01579B', data: [21,24,20,17,29,25,21,23,30,34,25,21,23] },
+                { name: 'Item-18', color: '#004D40', data: [19,22,18,16,27,23,19,21,28,32,23,19,21] },
+                { name: 'Item-19', color: '#00695C', data: [17,20,17,14,25,21,17,19,26,30,21,17,19] },
+                { name: 'Item-20', color: '#00796B', data: [15,18,15,12,23,19,15,17,24,28,19,15,17] },
+                { name: 'Item-21', color: '#00897B', data: [14,17,14,11,21,18,14,16,22,26,18,14,16] },
+                { name: 'Item-22', color: '#009688', data: [12,15,12,10,19,16,12,14,20,24,16,12,14] },
+                { name: 'Item-23', color: '#26A69A', data: [11,14,11,9,17,14,11,13,18,22,15,11,13] },
+                { name: 'Item-24', color: '#4DB6AC', data: [10,12,10,8,16,13,10,11,17,20,13,10,11] },
+                { name: 'Item-25', color: '#80CBC4', data: [9,11,9,7,14,11,9,10,15,18,12,9,10] }
             ]
         },
         {
-            id: 'safety',
-            label: 'Safety Stock Exceptions',
+            id: 'product3',
+            label: 'Product-3',
             members: [
-                { name: 'SKU_Pharma',      color: '#E91E63', data: [62,70,57,52, 74,67,60,64, 74, 82,70,62,66] },
-                { name: 'SKU_Electronics', color: '#F8BBD0', data: [54,60,50,46, 64,58,52,55, 65, 72,60,54,58] },
-                { name: 'SKU_FMCG',        color: '#E53935', data: [50,55,46,42, 59,53,48,51, 60, 67,55,49,53] },
-                { name: 'SKU_Auto',        color: '#B71C1C', data: [46,50,42,38, 54,48,44,46, 55, 61,50,45,48] },
-                { name: 'SKU_Apparel',     color: '#7B0012', data: [42,46,38,34, 49,44,40,42, 50, 56,45,40,44] }
+                { name: 'Item-1',  color: '#E91E63', data: [62,70,57,52,74,67,60,64,74,82,70,62,66] },
+                { name: 'Item-2',  color: '#F06292', data: [54,60,50,46,64,58,52,55,65,72,60,54,58] },
+                { name: 'Item-3',  color: '#E53935', data: [50,55,46,42,59,53,48,51,60,67,55,49,53] },
+                { name: 'Item-4',  color: '#C62828', data: [46,50,42,38,54,48,44,46,55,61,50,45,48] },
+                { name: 'Item-5',  color: '#B71C1C', data: [42,46,38,34,49,44,40,42,50,56,45,40,44] },
+                { name: 'Item-6',  color: '#880E4F', data: [39,43,35,31,46,41,37,39,47,53,42,38,41] },
+                { name: 'Item-7',  color: '#AD1457', data: [36,40,33,29,43,38,34,36,44,50,40,35,38] },
+                { name: 'Item-8',  color: '#C2185B', data: [34,37,31,27,40,36,32,34,41,47,37,33,35] },
+                { name: 'Item-9',  color: '#D32F2F', data: [31,35,28,25,38,33,29,31,39,44,35,30,33] },
+                { name: 'Item-10', color: '#EF5350', data: [29,32,26,23,35,31,27,29,36,41,32,28,30] },
+                { name: 'Item-11', color: '#F44336', data: [27,30,24,21,33,29,25,27,34,38,30,26,28] },
+                { name: 'Item-12', color: '#FF5252', data: [25,28,22,19,30,27,23,25,31,36,28,24,26] },
+                { name: 'Item-13', color: '#FF8A80', data: [23,26,20,18,28,25,21,23,29,33,26,22,24] },
+                { name: 'Item-14', color: '#F8BBD0', data: [21,24,19,16,26,23,19,21,27,31,24,20,22] },
+                { name: 'Item-15', color: '#7B0012', data: [19,22,17,14,24,21,18,19,25,28,22,19,20] },
+                { name: 'Item-16', color: '#9C27B0', data: [17,20,16,13,22,19,16,17,23,26,20,17,18] },
+                { name: 'Item-17', color: '#7B1FA2', data: [16,18,14,12,20,17,14,16,21,24,18,15,16] },
+                { name: 'Item-18', color: '#6A1B9A', data: [14,16,13,10,18,16,13,14,19,22,16,14,15] },
+                { name: 'Item-19', color: '#4A148C', data: [12,15,11,9,16,14,11,12,17,20,15,12,13] },
+                { name: 'Item-20', color: '#311B92', data: [11,13,10,8,15,12,10,11,16,18,13,11,12] },
+                { name: 'Item-21', color: '#4527A0', data: [10,12,9,7,13,11,9,10,14,16,12,10,11] },
+                { name: 'Item-22', color: '#512DA8', data: [9,11,8,6,12,10,8,9,13,15,11,9,10] },
+                { name: 'Item-23', color: '#5E35B1', data: [8,10,7,6,11,9,7,8,11,13,10,8,9] },
+                { name: 'Item-24', color: '#673AB7', data: [7,9,7,5,10,8,7,7,10,12,9,7,8] },
+                { name: 'Item-25', color: '#7C4DFF', data: [6,8,6,5,9,7,6,6,9,11,8,6,7] }
             ]
         }
     ];
@@ -75,23 +135,28 @@ function initMemberStackedLegendChart() {
     /** Line series — first two on primary (left) axis, last on secondary (right) */
     const LINES = [
         {
-            name: 'Total Supplier Capacity',
+            name: 'Line-1',
             color: '#1a2940',
             yAxis: 0,
-            data: [840,875,810,780,840,835,800,820,910,870,800,765,830]
+            data: [1640,1675,1510,1480,1640,1635,1500,1520,1710,1770,1600,1465,1530]
         },
         {
-            name: 'Logistics Lead Time Index',
+            name: 'Line-2',
             color: '#808080',
             yAxis: 0,
-            data: [455,440,475,445,490,465,450,460,500,520,475,450,465]
+            data: [955,940,975,945,990,965,950,960,1100,1120,975,950,965]
         },
         {
-            name: 'Market Demand Baseline',
+            name: 'Line-3',
             color: '#27AE60',
             yAxis: 1,
             data: [255,295,315,270,355,335,305,290,360,335,360,328,340]
         }
+    ];
+
+    /** Bar series — normal (non-stacked) columns */
+    const BARS = [
+        { name: 'Bar-1', color: '#5B2C6F', data: [320,345,310,290,360,340,315,330,370,390,350,305,325] }
     ];
 
     /* ── BUILD SERIES ARRAY ───────────────────────────────────────── */
@@ -126,6 +191,16 @@ function initMemberStackedLegendChart() {
                 borderWidth: 0.5,
                 borderColor: '#fff'
             });
+        });
+    });
+
+    BARS.forEach(function(b) {
+        seriesDefs.push({
+            type: 'column',
+            name: b.name,
+            color: b.color,
+            data: b.data,
+            showInLegend: false
         });
     });
 
@@ -180,7 +255,7 @@ function initMemberStackedLegendChart() {
             {
                 /* Primary left axis */
                 min: 0,
-                max: 1000,
+                max: 2000,
                 tickAmount: 5,
                 title: { text: null },
                 labels: {
@@ -365,6 +440,26 @@ function initMemberStackedLegendChart() {
         legendEl.appendChild(btn);
     }
 
+    function makeBarItem(barData) {
+        var btn = document.createElement('button');
+        btn.className = 'msl-lg-item';
+        btn.dataset.toggleName = barData.name;
+        btn.innerHTML =
+            '<span class="msl-sq" style="background:' + barData.color + '"></span>' +
+            '<span class="msl-lg-label">' + barData.name + '</span>';
+
+        btn.addEventListener('mouseenter', function() {
+            btn.classList.add('hovbg');
+            applyHighlight(new Set([barData.name]));
+        });
+        btn.addEventListener('mouseleave', function() {
+            btn.classList.remove('hovbg');
+            applyHighlight(null);
+        });
+        btn.addEventListener('click', function() { toggleSeries(barData.name); });
+        legendEl.appendChild(btn);
+    }
+
     function makeGroupItems(g) {
         var memberNames = g.members.map(function(m) { return m.name; });
         var memberSet   = new Set(memberNames);
@@ -413,11 +508,11 @@ function initMemberStackedLegendChart() {
 
     /* ── Populate legend row ─────────────────────────────────────── */
 
-    // 1. Total Supplier Capacity  (line, primary axis)
+    // 1. Line-1  (line, primary axis)
     makeLineItem(LINES[0]);
     addDivider();
 
-    // 2. Logistics Lead Time Index  (line, primary axis)
+    // 2. Line-2  (line, primary axis)
     makeLineItem(LINES[1]);
     addDivider();
 
@@ -427,6 +522,12 @@ function initMemberStackedLegendChart() {
         addDivider();
     });
 
-    // 6. Market Demand Baseline  (line, secondary axis)
+    // 6. Bar series (non-stacked)
+    BARS.forEach(function(b) {
+        makeBarItem(b);
+    });
+    addDivider();
+
+    // 7. Line-3  (line, secondary axis)
     makeLineItem(LINES[2]);
 }

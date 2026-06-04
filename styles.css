@@ -57,6 +57,12 @@ body {
     border-left: 3px solid #3498db;
 }
 
+.sidebar-divider {
+    height: 1px;
+    margin: 6px 16px;
+    background: rgba(255,255,255,0.15);
+}
+
 .content {
     flex: 1;
     padding: 30px;

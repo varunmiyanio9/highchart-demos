@@ -16,8 +16,9 @@ var PAGE_META = {
     'label-click':              { name: 'Label Click Selection', description: 'useHTML labels with event delegation' },
     'combined-selection':       { name: 'Combined Selection', description: 'Pure SVG labels, background-only mouse select, bidirectional label+grid' },
     'forecast':                 { name: 'Forecast', description: 'Historical vs forecast data with confidence bands and error bars' },
-    'member-stacked-legend':    { name: 'Member Stacked Legend', description: 'Custom HTML legend: group headers, swatches, dividers, hover highlight' },
-    'member-stacked-legend-hc': { name: 'Member Stacked Legend (HC)', description: 'Same chart using Highcharts native legend with minimal custom code' },
+    'stack-bar-legends-default': { name: 'Stack Bar Legends (Default)', description: '100% Highcharts defaults — zero custom code, just series data' },
+    'member-stacked-legend-hc': { name: 'Stack Bar Legends (min-custom)', description: 'Highcharts native legend with minimal custom code for group headers' },
+    'member-stacked-legend':    { name: 'Stack Bar Legends (full-custom)', description: 'Custom HTML legend: group headers, swatches, dividers, hover highlight' },
     'multi-type-chart':         { name: 'Multi-Type Combined', description: 'Bar, Stacked, Line, Area combined in one chart with dual y-axes' },
     'context-menu':             { name: 'Context Menu', description: 'Built-in exporting menu + custom right-click nested context menu' }
 };
@@ -240,27 +241,24 @@ var CHART_REGISTRY = [
         nativeNotes: 'chart.renderer (SVG drawing API), chart.events.load.'
     },
 
-    // ─── Member Stacked Legend (Custom HTML) ───
+    // ─── Stack Bar Legends (Default) ───
     {
-        chartId: 'MSL-1',
-        pageId: 'member-stacked-legend',
-        containerId: 'msl-chart',
-        title: 'Member Stacked Legend (Custom HTML)',
+        chartId: 'SBL-1',
+        pageId: 'stack-bar-legends-default',
+        containerId: 'sbl-default-chart',
+        title: 'Stack Bar Legends (Default)',
         customNotes: [
-            'Entire legend is external HTML — Highcharts built-in legend cannot render grouped headers with member swatches and "|" dividers.',
-            'Hover-dim via series.group.attr({opacity}) — internal SVG element manipulation (not public API).',
-            'Click-toggle wires to series.show()/hide() — custom click handler on legend buttons.',
-            'Visual feedback via .msl-off CSS class — applies strikethrough + dimmed swatch when hidden.'
+            'None — 100% Highcharts out-of-the-box. Series data passed directly, default legend renders all items automatically.'
         ],
-        nativeNotes: 'legend.enabled:false, series.show()/hide(), series.group (SVG internals).'
+        nativeNotes: 'legend.enabled:true (default), stacking:normal, multiple stacks via stack id, yAxis[1].opposite, default legend click toggle.'
     },
 
-    // ─── Member Stacked Legend (HC Native) ───
+    // ─── Stack Bar Legends (min-custom) ───
     {
         chartId: 'MHC-1',
         pageId: 'member-stacked-legend-hc',
         containerId: 'msl-hc-chart',
-        title: 'Member Stacked Legend (Highcharts Native)',
+        title: 'Stack Bar Legends (min-custom)',
         customNotes: [
             'Group header hover → highlight stack — Highcharts has no concept of legend item groups. mouseenter on group header calls setState(\'hover\') on member series.',
             'Dummy series as legend separators — group headers and "|" dividers are zero-data series with legendItemClick returning false.',
@@ -268,6 +266,21 @@ var CHART_REGISTRY = [
             'alignColumns: false — prevents table-grid alignment; items flow sequentially.'
         ],
         nativeNotes: 'legend.maxHeight + legend.navigation (pagination), useHTML, symbolWidth/Height:0, series.setState(), itemHoverStyle, chart.events.render.'
+    },
+
+    // ─── Stack Bar Legends (full-custom) ───
+    {
+        chartId: 'MSL-1',
+        pageId: 'member-stacked-legend',
+        containerId: 'msl-chart',
+        title: 'Stack Bar Legends (full-custom)',
+        customNotes: [
+            'Entire legend is external HTML — Highcharts built-in legend cannot render grouped headers with member swatches and "|" dividers.',
+            'Hover-dim via series.group.attr({opacity}) — internal SVG element manipulation (not public API).',
+            'Click-toggle wires to series.show()/hide() — custom click handler on legend buttons.',
+            'Visual feedback via .msl-off CSS class — applies strikethrough + dimmed swatch when hidden.'
+        ],
+        nativeNotes: 'legend.enabled:false, series.show()/hide(), series.group (SVG internals).'
     },
 
     // ─── Multi-Type Chart ───

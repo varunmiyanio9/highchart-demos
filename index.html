@@ -34,8 +34,11 @@
                     <li><a href="#" data-chart="label-click">Label Click Selection</a></li>
                     <li><a href="#" data-chart="combined-selection">Combined Selection</a></li>
                     <li><a href="#" data-chart="forecast">Forecast</a></li>
-                    <li><a href="#" data-chart="member-stacked-legend">Member Stacked Legend</a></li>
-                    <li><a href="#" data-chart="member-stacked-legend-hc">Member Stacked Legend (HC)</a></li>
+                    <li class="sidebar-divider"></li>
+                    <li><a href="#" data-chart="stack-bar-legends-default">Stack Bar Legends (Default)</a></li>
+                    <li><a href="#" data-chart="member-stacked-legend-hc">Stack Bar Legends (min-custom)</a></li>
+                    <li><a href="#" data-chart="member-stacked-legend">Stack Bar Legends (full-custom)</a></li>
+                    <li class="sidebar-divider"></li>
                     <li><a href="#" data-chart="multi-type-chart">Multi-Type Combined</a></li>
                     <li><a href="#" data-chart="context-menu">Context Menu</a></li>
                 </ul>
@@ -108,6 +111,9 @@
                 <div id="forecast-tooltip-center"></div>
                 <div id="forecast-tooltip-left"></div>
             </div>
+            <div id="stack-bar-legends-default" class="chart-container" style="display:none;">
+                <div id="sbl-default-chart" style="height:480px;"></div>
+            </div>
             <div id="member-stacked-legend-hc" class="chart-container" style="display:none;">
                 <div id="msl-hc-chart" style="height:480px;"></div>
             </div>
@@ -163,8 +169,9 @@
     <script src="charts/label-click-selection.js"></script>
     <script src="charts/combined-selection.js"></script>
     <script src="charts/forecast.js"></script>
-    <script src="charts/member-stacked-legend-hc.js"></script>
-    <script src="charts/member-stacked-legend.js"></script>
+    <script src="charts/stack-bar-legends-default.js"></script>
+    <script src="charts/stack-bar-legends-min-custom.js"></script>
+    <script src="charts/stack-bar-legends-full-custom.js"></script>
     <script src="charts/multi-type-chart.js"></script>
     <script src="charts/context-menu.js"></script>
     <script src="chart-registry.js"></script>

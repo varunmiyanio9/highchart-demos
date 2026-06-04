@@ -10,8 +10,9 @@ var CHART_INIT = {
     'label-click': function () { if (!window.labelChart) initLabelClickChart(); },
     'combined-selection': function () { if (!window.combinedChart) initCombinedSelectionChart(); },
     'forecast': function () { if (!window.forecastCharts) initForecastCharts(); },
-    'member-stacked-legend': function () { if (!window.mslChart) { window.mslChart = true; initMemberStackedLegendChart(); } },
+    'stack-bar-legends-default': function () { if (!window.sblDefaultChart) { window.sblDefaultChart = true; initStackBarLegendsDefaultChart(); } },
     'member-stacked-legend-hc': function () { if (!window.mslHCChart) { window.mslHCChart = true; initMemberStackedLegendHCChart(); } },
+    'member-stacked-legend': function () { if (!window.mslChart) { window.mslChart = true; initMemberStackedLegendChart(); } },
     'context-menu': function () { if (!window.ctxMenuInit) { window.ctxMenuInit = true; initContextMenuCharts(); } }
 };
 
