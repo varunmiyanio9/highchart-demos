@@ -36,8 +36,8 @@ Every chart instance has a unique ID (e.g., `FC-1`, `CTX-2`) defined in `chart-r
 | FC-8 | forecast | forecast-tooltip-center | Renderer Tooltip — Center |
 | FC-9 | forecast | forecast-tooltip-left | Renderer Tooltip — Left Edge |
 | SBL-1 | stack-bar-legends-default | sbl-default-chart | Stack Bar Legends (Default) |
-| MHC-1 | member-stacked-legend-hc | msl-hc-chart | Stack Bar Legends (min-custom) |
-| MSL-1 | member-stacked-legend | msl-chart | Stack Bar Legends (full-custom) |
+| MHC-1 | stack-bar-legends-min-custom | msl-hc-chart | Stack Bar Legends (min-custom) |
+| MSL-1 | stack-bar-legends-full-custom | msl-chart | Stack Bar Legends (full-custom) |
 | MTC-1 | multi-type-chart | multi-type-chart-main | Multi-Type Combined Chart |
 | CTX-1 | context-menu | ctx-builtin-chart | Context Menu — Built-in Exporting |
 | CTX-2 | context-menu | ctx-custom-chart | Context Menu — Custom Right-Click |
@@ -59,7 +59,7 @@ Every chart instance has a unique ID (e.g., `FC-1`, `CTX-2`) defined in `chart-r
 | `CLAUDE.md` | This file — project conventions |
 
 ## Design Goal
-Each chart explores a unique idea. The project compares "how much is custom code vs native Highcharts". The `member-stacked-legend-hc.js` chart specifically aims for **maximum native Highcharts, minimum custom code** — only add custom behavior when Highcharts has no native equivalent.
+Each chart explores a unique idea. The project compares "how much is custom code vs native Highcharts". The `stack-bar-legends-min-custom.js` chart specifically aims for **maximum native Highcharts, minimum custom code** — only add custom behavior when Highcharts has no native equivalent.
 
 ## Conventions
 - All chart init functions are global (IIFEs or named functions on window)

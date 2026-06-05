@@ -16,7 +16,7 @@ Read `CLAUDE.md` at the project root for full conventions, chart ID table, and f
 3. **When adding a new chart:** add a registry entry → add container div to `index.html` → create chart JS file → add to `CHART_INIT` in `charts.js`.
 4. **Keep `customNotes` accurate** — it's the documentation visible in the UI.
 5. **Use chart IDs** (e.g., `FC-1`, `MHC-1`) when referencing specific charts.
-6. **member-stacked-legend-hc.js goal:** maximum native Highcharts, minimum custom code.
+6. **stack-bar-legends-min-custom.js goal:** maximum native Highcharts, minimum custom code.
 
 ## Chart ID Lookup
 

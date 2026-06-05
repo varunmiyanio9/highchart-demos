@@ -17,8 +17,8 @@ var PAGE_META = {
     'combined-selection':       { name: 'Combined Selection', description: 'Pure SVG labels, background-only mouse select, bidirectional label+grid' },
     'forecast':                 { name: 'Forecast', description: 'Historical vs forecast data with confidence bands and error bars' },
     'stack-bar-legends-default': { name: 'Stack Bar Legends (Default)', description: '100% Highcharts defaults — zero custom code, just series data' },
-    'member-stacked-legend-hc': { name: 'Stack Bar Legends (min-custom)', description: 'Highcharts native legend with minimal custom code for group headers' },
-    'member-stacked-legend':    { name: 'Stack Bar Legends (full-custom)', description: 'Custom HTML legend: group headers, swatches, dividers, hover highlight' },
+    'stack-bar-legends-min-custom':  { name: 'Stack Bar Legends (min-custom)', description: 'Highcharts native legend with minimal custom code for group headers' },
+    'stack-bar-legends-full-custom': { name: 'Stack Bar Legends (full-custom)', description: 'Custom HTML legend: group headers, swatches, dividers, hover highlight' },
     'multi-type-chart':         { name: 'Multi-Type Combined', description: 'Bar, Stacked, Line, Area combined in one chart with dual y-axes' },
     'context-menu':             { name: 'Context Menu', description: 'Built-in exporting menu + custom right-click nested context menu' }
 };
@@ -256,7 +256,7 @@ var CHART_REGISTRY = [
     // ─── Stack Bar Legends (min-custom) ───
     {
         chartId: 'MHC-1',
-        pageId: 'member-stacked-legend-hc',
+        pageId: 'stack-bar-legends-min-custom',
         containerId: 'msl-hc-chart',
         title: 'Stack Bar Legends (min-custom)',
         customNotes: [
@@ -271,7 +271,7 @@ var CHART_REGISTRY = [
     // ─── Stack Bar Legends (full-custom) ───
     {
         chartId: 'MSL-1',
-        pageId: 'member-stacked-legend',
+        pageId: 'stack-bar-legends-full-custom',
         containerId: 'msl-chart',
         title: 'Stack Bar Legends (full-custom)',
         customNotes: [
