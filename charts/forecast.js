@@ -382,7 +382,18 @@ function initForecastCharts() {
         },
         title: { text: 'Forecast Divider \u2014 Center with Hover Tooltip', align: 'center' },
         subtitle: { text: 'Hover the yellow line to see a tooltip. Custom renderer line + label.', align: 'center' },
-        xAxis: { categories: categories },
+        xAxis: {
+            categories: categories,
+            labels: {
+                useHTML: true,
+                formatter: function () {
+                    if (this.value === categories[forecastStart]) {
+                        return '<span style="font-weight:bold;color:#f39c12">' + this.value + '</span>';
+                    }
+                    return this.value;
+                }
+            }
+        },
         yAxis: { title: { text: 'Total Sales' }, labels: { format: '${value:,.0f}' } },
         tooltip: { shared: true, valuePrefix: '$', valueDecimals: 0 },
         legend: { enabled: true },
@@ -439,7 +450,18 @@ function initForecastCharts() {
         },
         title: { text: 'Forecast Only \u2014 True Left Edge with Hover Tooltip', align: 'center' },
         subtitle: { text: 'Yellow line at exact plot area left edge. Hover to see tooltip.', align: 'center' },
-        xAxis: { categories: forecastOnlyCategories },
+        xAxis: {
+            categories: forecastOnlyCategories,
+            labels: {
+                useHTML: true,
+                formatter: function () {
+                    if (this.pos === 0) {
+                        return '<span style="font-weight:bold;color:#f39c12">' + this.value + '</span>';
+                    }
+                    return this.value;
+                }
+            }
+        },
         yAxis: { title: { text: 'Total Sales' }, labels: { format: '${value:,.0f}' } },
         tooltip: { shared: true, valuePrefix: '$', valueDecimals: 0 },
         legend: { enabled: true },
