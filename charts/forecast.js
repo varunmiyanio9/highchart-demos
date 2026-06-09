@@ -381,7 +381,7 @@ function initForecastCharts() {
                     var ticks = chart.xAxis[0].ticks;
                     Object.keys(ticks).forEach(function (key) {
                         if (parseInt(key) === forecastStart && ticks[key].label) {
-                            ticks[key].label.css({ fontWeight: 'bold', fill: '#f39c12' });
+                            ticks[key].label.css({ fontWeight: 'bold', color: '#f39c12' });
                         }
                     });
                 }
@@ -441,11 +441,6 @@ function initForecastCharts() {
                         line.attr({ 'stroke-width': 1 });
                         tooltip.hide();
                     });
-
-                    var ticks = chart.xAxis[0].ticks;
-                    if (ticks['0'] && ticks['0'].label) {
-                        ticks['0'].label.css({ fontWeight: 'bold', fill: '#f39c12' });
-                    }
                 }
             }
         },
