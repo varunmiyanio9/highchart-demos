@@ -377,23 +377,19 @@ function initForecastCharts() {
                         line.attr({ 'stroke-width': 1 });
                         tooltip.hide();
                     });
+
+                    var ticks = chart.xAxis[0].ticks;
+                    Object.keys(ticks).forEach(function (key) {
+                        if (parseInt(key) === forecastStart && ticks[key].label) {
+                            ticks[key].label.css({ fontWeight: 'bold', fill: '#f39c12' });
+                        }
+                    });
                 }
             }
         },
         title: { text: 'Forecast Divider \u2014 Center with Hover Tooltip', align: 'center' },
         subtitle: { text: 'Hover the yellow line to see a tooltip. Custom renderer line + label.', align: 'center' },
-        xAxis: {
-            categories: categories,
-            labels: {
-                useHTML: true,
-                formatter: function () {
-                    if (this.value === categories[forecastStart]) {
-                        return '<span style="font-weight:bold;color:#f39c12">' + this.value + '</span>';
-                    }
-                    return this.value;
-                }
-            }
-        },
+        xAxis: { categories: categories },
         yAxis: { title: { text: 'Total Sales' }, labels: { format: '${value:,.0f}' } },
         tooltip: { shared: true, valuePrefix: '$', valueDecimals: 0 },
         legend: { enabled: true },
@@ -445,23 +441,17 @@ function initForecastCharts() {
                         line.attr({ 'stroke-width': 1 });
                         tooltip.hide();
                     });
+
+                    var ticks = chart.xAxis[0].ticks;
+                    if (ticks['0'] && ticks['0'].label) {
+                        ticks['0'].label.css({ fontWeight: 'bold', fill: '#f39c12' });
+                    }
                 }
             }
         },
         title: { text: 'Forecast Only \u2014 True Left Edge with Hover Tooltip', align: 'center' },
         subtitle: { text: 'Yellow line at exact plot area left edge. Hover to see tooltip.', align: 'center' },
-        xAxis: {
-            categories: forecastOnlyCategories,
-            labels: {
-                useHTML: true,
-                formatter: function () {
-                    if (this.pos === 0) {
-                        return '<span style="font-weight:bold;color:#f39c12">' + this.value + '</span>';
-                    }
-                    return this.value;
-                }
-            }
-        },
+        xAxis: { categories: forecastOnlyCategories },
         yAxis: { title: { text: 'Total Sales' }, labels: { format: '${value:,.0f}' } },
         tooltip: { shared: true, valuePrefix: '$', valueDecimals: 0 },
         legend: { enabled: true },
