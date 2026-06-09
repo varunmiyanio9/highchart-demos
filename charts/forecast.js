@@ -60,7 +60,7 @@ function initForecastCharts() {
     // [HIGHCHARTS NATIVE] plotLines config — orange vertical divider
     const plotLineConfig = {
         color: '#f39c12',
-        width: 2,
+        width: 1,
         value: forecastStart,
         label: { text: 'Forecast Start', style: { color: '#f39c12', fontWeight: 'bold' } }
     };
@@ -351,7 +351,7 @@ function initForecastCharts() {
                         'L', xPos, chart.plotTop + chart.plotHeight
                     ]).attr({
                         stroke: '#f39c12',
-                        'stroke-width': 4,
+                        'stroke-width': 1,
                         zIndex: 5,
                         cursor: 'pointer'
                     }).add();
@@ -370,11 +370,11 @@ function initForecastCharts() {
                     }).add().hide();
 
                     line.on('mouseover', function () {
-                        line.attr({ 'stroke-width': 6 });
+                        line.attr({ 'stroke-width': 2 });
                         tooltip.attr({ x: xPos + 8, y: chart.plotTop + 20 }).show();
                     });
                     line.on('mouseout', function () {
-                        line.attr({ 'stroke-width': 4 });
+                        line.attr({ 'stroke-width': 1 });
                         tooltip.hide();
                     });
                 }
@@ -408,13 +408,13 @@ function initForecastCharts() {
                         'L', xPos, chart.plotTop + chart.plotHeight
                     ]).attr({
                         stroke: '#f39c12',
-                        'stroke-width': 4,
+                        'stroke-width': 1,
                         zIndex: 5,
                         cursor: 'pointer'
                     }).add();
 
                     var tooltip = chart.renderer.label(
-                        'Forecast: ' + forecastOnlyCategories[0], 0, 0, 'callout'
+                        'Forecast: ' + categories[forecastStart], 0, 0, 'callout'
                     ).attr({
                         fill: '#f39c12',
                         padding: 8,
@@ -427,11 +427,11 @@ function initForecastCharts() {
                     }).add().hide();
 
                     line.on('mouseover', function () {
-                        line.attr({ 'stroke-width': 6 });
+                        line.attr({ 'stroke-width': 2 });
                         tooltip.attr({ x: xPos + 8, y: chart.plotTop + 20 }).show();
                     });
                     line.on('mouseout', function () {
-                        line.attr({ 'stroke-width': 4 });
+                        line.attr({ 'stroke-width': 1 });
                         tooltip.hide();
                     });
                 }

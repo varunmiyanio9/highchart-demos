@@ -279,14 +279,15 @@ function initMemberStackedLegendHCChart() {
                     var chart = this.chart;
                     var ids = this.options.custom.memberIds;
                     var allHidden = ids.every(function (id) {
-                        var s = chart.get(id);           // Highcharts PUBLIC API
+                        var s = chart.get(id);
                         return s && !s.visible;
                     });
                     ids.forEach(function (id) {
-                        var s = chart.get(id);           // Highcharts PUBLIC API
+                        var s = chart.get(id);
                         if (!s) return;
-                        allHidden ? s.show() : s.hide(); // Highcharts PUBLIC API
+                        s.setVisible(allHidden, false);  // false = skip redraw
                     });
+                    chart.redraw();                       // single redraw at end
                     return false;
                 }
             }
