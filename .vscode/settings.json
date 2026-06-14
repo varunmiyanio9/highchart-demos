@@ -1,3 +1,9 @@
 {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "prettier.tabWidth": 4,
+    "prettier.singleQuote": false,
+    "prettier.jsxSingleQuote": false,
     "snyk.advanced.autoSelectOrganization": true
 }
