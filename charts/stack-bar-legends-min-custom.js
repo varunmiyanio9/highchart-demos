@@ -1091,14 +1091,6 @@ function initMemberStackedLegendHCChart() {
              * xAxis.plotLines — HIGHCHARTS OPTION
              * Orange vertical rule for the "current time bucket" boundary.
              */
-            plotLines: [
-                {
-                    value: 7.5,
-                    color: "#f5a623",
-                    width: 2,
-                    zIndex: 4,
-                },
-            ],
             gridLineWidth: 0,
             lineColor: "#9aa0a8",
             tickColor: "transparent",
