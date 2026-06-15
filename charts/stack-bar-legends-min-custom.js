@@ -1016,7 +1016,7 @@ function initMemberStackedLegendHCChart() {
                 if (custom.isGroupHeader) {
                     return `
                         <span style="display:inline-flex;align-items:center;gap:10px;">
-                            ${GROUP_NAMES.map((group) => {
+                            ${GROUP_NAMES.map((group, groupIndex) => {
                                 return `
                                 <span 
                                     id="${group.id}"
@@ -1025,7 +1025,7 @@ function initMemberStackedLegendHCChart() {
                                 >
                                     ${STACKED_BAR_ICON}
                                     <b style="font-weight:700;color:#16191d;font-size:11.5px;pointer-events:none;">
-                                        ${group.label}:
+                                        ${group.label}${groupIndex === GROUP_NAMES.length - 1 ? ":" : ""}
                                     </b>
                                 </span>
                             `;
