@@ -1003,81 +1003,61 @@ function initMemberStackedLegendHCChart() {
 
                 /* "|" DIVIDER — styled pipe character */
                 if (custom.isDivider) {
-                    return (
-                        '<span style="' +
-                        "display:inline-block;width:1px;height:14px;" +
-                        "background:#d4d4d8;vertical-align:middle;" +
-                        "pointer-events:none;" +
-                        '"></span>'
-                    );
+                    return `
+                        <span style="display:inline-block;width:1px;height:14px;background:#d4d4d8;vertical-align:middle;pointer-events:none;"></span>
+                    `;
                 }
 
                 /* GROUP HEADER — stacked bar icon + bold label */
                 if (custom.isGroupHeader) {
                     return `
-                        <span style="display:inline-flex;align-items:center;gap:10px;">
+                        <div style="display:flex;align-items:center;gap:10px;">
                             ${GROUP_NAMES.map((group, groupIndex) => {
                                 return `
-                                <span 
+                                <div 
                                     id="${group.id}"
                                     class="group-sub-item"
-                                    style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;"
+                                    style="display:flex;align-items:center;gap:4px;cursor:pointer;"
                                 >
                                     ${STACKED_BAR_ICON}
                                     <b style="font-weight:700;color:#16191d;font-size:11.5px;pointer-events:none;">
                                         ${group.label}${groupIndex === GROUP_NAMES.length - 1 ? ":" : ""}
                                     </b>
-                                </span>
+                                </div>
                             `;
                             }).join("")}
-                        </span>
+                        </div>
                     `;
                 }
 
                 /* LINE SERIES — horizontal color stripe + name */
                 if (custom.isLine) {
-                    return (
-                        '<span style="display:inline-flex;align-items:center;gap:5px;">' +
-                        '<span style="' +
-                        "display:inline-block;width:20px;height:3px;" +
-                        "background:" +
-                        custom.lineColor +
-                        ";" +
-                        "border-radius:1px;flex-shrink:0;" +
-                        '"></span>' +
-                        '<span style="font-size:11.5px;">' +
-                        this.name +
-                        "</span>" +
-                        "</span>"
-                    );
+                    return `
+                        <div style="display:flex;align-items:center;gap:5px;">
+                            <div style="display:inline-block;width:20px;height:3px;background:${custom.lineColor};border-radius:1px;flex-shrink:0;"></div>
+                            <div style="font-size:11.5px;">${this.name}</div>
+                        </div>
+                    `;
                 }
 
                 /* BAR SERIES (non-stacked) — colored square + name */
                 if (custom.isBar) {
-                    return `<span style="display:inline-flex;align-items:center;gap:4px;">
+                    return `<div style="display:flex;align-items:center;gap:4px;">
                                 ${STACKED_BAR_ICON}
                                 <b style="font-weight:700;color:#16191d;font-size:11.5px;">
                                     ${this.name}
                                 </b>
-                            </span>`;
+                            </div>`;
                 }
 
                 /* MEMBER (stacked column) — colored square + name */
                 if (custom.isMember) {
-                    return (
-                        '<span style="display:inline-flex;align-items:center;gap:4px;">' +
-                        '<span style="' +
-                        "display:inline-block;width:10px;height:10px;" +
-                        "background:" +
-                        custom.memberColor +
-                        ";" +
-                        "border-radius:1px;flex-shrink:0;" +
-                        '"></span>' +
-                        '<span style="font-size:11.5px;">' +
-                        this.name +
-                        "</span>" +
-                        "</span>"
-                    );
+                    return `
+                        <div style="display:flex;align-items:center;gap:4px;">
+                            <div style="display:inline-block;width:10px;height:10px;background:${custom.memberColor};border-radius:1px;flex-shrink:0;"></div>
+                            <div style="font-size:11.5px;">${this.name}</div>
+                        </div>
+                    `;
                 }
 
                 return this.name;
