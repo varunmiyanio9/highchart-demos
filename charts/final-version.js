@@ -141,6 +141,7 @@
 
     var chart = null;
     var fcLine = null, fcTip = null;          // forecast divider renderer elements
+    var edgeLeft = null, edgeRight = null;    // scroll-aware dashed edge indicators (DOM)
     var selectedCategories = new Set();
     var currentFontSize = '12px';
     var currentFontWeight = 'normal';
@@ -383,8 +384,120 @@
         if (!chart) return;
         drawForecastDivider();
         chart.redraw();
+        updateEdgeIndicators();
         setTimeout(function () { if (chart) { applyLabelStyles(); attachLabelHandlers(); } }, 50);
         updateDetailPanel();
+    }
+
+    /* ── SCROLL-AWARE FORECAST EDGE INDICATORS ───────────────────────────
+       With "Allow Scroll" on, the solid forecast divider lives inside the
+       scrolling plot and can be scrolled out of the visible window. When it
+       leaves the viewport we pin a DASHED line to the edge it exited, so the
+       user always knows which side of the forecast boundary they're viewing:
+         • divider scrolled off the LEFT  → only FUTURE is visible → left edge
+         • divider scrolled off the RIGHT → only PAST   is visible → right edge
+       The real solid divider stays the single source of truth — the dashed
+       edge line is hidden the moment it scrolls back into view, or whenever
+       scrolling is off. Same renderer-edge idea as FC-9, but dashed and only
+       shown when the divider is off screen. */
+
+    function scrollContainer() {
+        // scrollablePlotArea (Allow Scroll = on) renders the wide plot inside a
+        // .highcharts-scrolling div; that div — not the page — is what scrolls.
+        // Note: the scroller WRAPS chart.container, so it isn't a descendant of
+        // it — query from renderTo (#fin-chart), the outer element we mount into.
+        var root = chart && (chart.renderTo || (chart.container && chart.container.parentNode));
+        return root ? root.querySelector('.highcharts-scrolling') : null;
+    }
+
+    function buildEdgeIndicator(side) {
+        var el = document.createElement('div');
+        el.className = 'fin-edge fin-edge-' + side;
+        var label = document.createElement('span');
+        label.className = 'fin-edge-label';
+        label.textContent = side === 'left'
+            ? 'Forecast ▸ future only'   // ▸ — divider is off to the left
+            : '◂ past only';             // ◂ — divider is off to the right
+        el.appendChild(label);
+        el.style.display = 'none';
+        return el;
+    }
+
+    function ensureEdgeIndicators() {
+        var wrap = document.getElementById('fin-scroll-wrap');
+        if (!wrap) return;
+        // Built once and parked on the wrapper, which survives chart rebuilds
+        // (the Allow-Scroll toggle destroys/recreates the chart, not the wrap).
+        if (!wrap._finEdgeBuilt) {
+            wrap._finEdgeBuilt = true;
+            edgeLeft = buildEdgeIndicator('left');
+            edgeRight = buildEdgeIndicator('right');
+            wrap.appendChild(edgeLeft);
+            wrap.appendChild(edgeRight);
+        } else {
+            edgeLeft = wrap.querySelector('.fin-edge-left');
+            edgeRight = wrap.querySelector('.fin-edge-right');
+        }
+    }
+
+    function bindScrollIndicator() {
+        // Bind on the WRAPPER (never destroyed), not the inner .highcharts-scrolling
+        // (which Highcharts creates AFTER the load event and recreates on every
+        // rebuild — binding to it there races and silently misses). Capture phase
+        // catches the inner scroll even though scroll events don't bubble, so one
+        // listener on the stable wrapper covers every rebuild with no timing risk.
+        var wrap = document.getElementById('fin-scroll-wrap');
+        if (wrap && !wrap._finScrollBound) {
+            wrap._finScrollBound = true;
+            wrap.addEventListener('scroll', updateEdgeIndicators, true);
+        }
+    }
+
+    function updateEdgeIndicators() {
+        if (!chart) return;
+        ensureEdgeIndicators();
+        if (!edgeLeft || !edgeRight) return;
+
+        var sc = scrollContainer();
+        // Scrolling off, or content fits with no scroller → the divider is
+        // always on screen, so neither edge hint applies.
+        if (!allowScroll || !sc) {
+            edgeLeft.style.display = 'none';
+            edgeRight.style.display = 'none';
+            return;
+        }
+
+        var dividerX = forecastX();      // divider x in full (pre-scroll) SVG coords
+        // With scrollablePlotArea, chart.plotWidth is the FULL scrollable plot
+        // width while chart.chartWidth stays at the container width — so the full
+        // rendered width comes from the scroller (sc.scrollWidth), and the pinned
+        // right y-axis band is whatever's left of it past the plot.
+        var rightAxisW = sc.scrollWidth - chart.plotLeft - chart.plotWidth;
+        // Visible plot window in full-SVG coords. The pinned y-axes cover plotLeft
+        // px on the left of the viewport and rightAxisW px on the right.
+        var visibleLeft = sc.scrollLeft + chart.plotLeft;
+        var visibleRight = sc.scrollLeft + sc.clientWidth - rightAxisW;
+
+        function place(el, viewportX) {
+            el.style.top = chart.plotTop + 'px';
+            el.style.height = chart.plotHeight + 'px';
+            el.style.left = viewportX + 'px';
+            el.style.display = 'block';
+        }
+
+        if (dividerX < visibleLeft) {
+            // Divider is left of the window → everything visible is future.
+            place(edgeLeft, chart.plotLeft);
+            edgeRight.style.display = 'none';
+        } else if (dividerX > visibleRight) {
+            // Divider is right of the window → everything visible is past.
+            place(edgeRight, sc.clientWidth - rightAxisW);
+            edgeLeft.style.display = 'none';
+        } else {
+            // Real solid divider is on screen → no edge hint needed.
+            edgeLeft.style.display = 'none';
+            edgeRight.style.display = 'none';
+        }
     }
 
     /* ── SELECTION (mouse + keyboard, single chart) ───────────────────── */
@@ -805,10 +918,18 @@
                         attachLabelHandlers();
                         applyLabelStyles();
                         bindLegendHover();
+                        bindScrollIndicator();
+                        updateEdgeIndicators();
+                        // .highcharts-scrolling is created just after load, so set
+                        // the initial edge state once it exists (e.g. starting
+                        // scrolled to the past shows the right-edge hint right away).
+                        setTimeout(function () { updateEdgeIndicators(); }, 60);
                     },
                     redraw: function () {
                         chart = this;
                         drawForecastDivider();
+                        bindScrollIndicator();
+                        updateEdgeIndicators();
                         setTimeout(function () {
                             if (!chart) return;
                             attachLabelHandlers();

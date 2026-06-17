@@ -401,6 +401,7 @@ var CHART_REGISTRY = [
             "Dynamic timeline — x-axis is a rolling 49-month window (two years before → two years after the browser's current month). Range bounds are fixed at load; the 'Current Month' input moves the forecast divider.",
             "Forecast divider (from FC-8, changed) — renderer-drawn SOLID vertical line with hover tooltip sitting ON the current month's tick, drawn BEHIND the bars (zIndex 2, below the column series group) instead of on top.",
             "Allow-Scroll switch — ON pins the chart container to a fixed wide width (scales with the bucket count) so the wrapper scrolls horizontally; OFF clears the width so all 25 months shrink to fit the visible area.",
+            "Scroll-aware forecast edge indicators (new) — while scrolling, when the solid divider leaves the viewport a DASHED line pins to the edge it exited: left edge = 'future only' (divider scrolled off left), right edge = 'past only' (divider scrolled off right). Hidden the instant the real divider scrolls back into view. Same edge-line idea as FC-9, now dashed and driven by scroll position.",
         ],
         nativeNotes:
             "Multiple series types, yAxis array, stack IDs + grouping, legend.useHTML + labelFormatter + maxHeight/navigation pagination, series.setState()/setVisible(), xAxis.plotBands, chart.zooming + events.selection, chart.renderer (forecast line), chart.update({chart:{width}}), accessibility keyboardNavigation.",

@@ -524,6 +524,39 @@ body {
     overflow-x: auto;
     overflow-y: hidden;
     width: 100%;
+    position: relative; /* anchor for the dashed forecast edge indicators */
+}
+
+/* Scroll-aware forecast edge indicators (FIN-1):
+   pinned to the visible plot edge when the forecast divider scrolls off screen. */
+.fin-edge {
+    position: absolute;
+    width: 0;
+    pointer-events: none; /* never block chart interaction */
+    z-index: 6;
+}
+.fin-edge-left {
+    border-left: 2px dashed #f39c12;
+}
+.fin-edge-right {
+    border-right: 2px dashed #f39c12;
+}
+.fin-edge-label {
+    position: absolute;
+    top: 6px;
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    background: #f39c12;
+    padding: 2px 7px;
+    border-radius: 3px;
+}
+.fin-edge-left .fin-edge-label {
+    left: 6px;
+}
+.fin-edge-right .fin-edge-label {
+    right: 6px;
 }
 
 /* Context menu header label (the flat menu's title row) */
