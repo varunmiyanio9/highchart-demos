@@ -13,7 +13,8 @@ var CHART_INIT = {
     'stack-bar-legends-default': function () { if (!window.sblDefaultChart) { window.sblDefaultChart = true; initStackBarLegendsDefaultChart(); } },
     'stack-bar-legends-min-custom': function () { if (!window.mslHCChart) { window.mslHCChart = true; initMemberStackedLegendHCChart(); } },
     'stack-bar-legends-full-custom': function () { if (!window.mslChart) { window.mslChart = true; initMemberStackedLegendChart(); } },
-    'context-menu': function () { if (!window.ctxMenuInit) { window.ctxMenuInit = true; initContextMenuCharts(); } }
+    'context-menu': function () { if (!window.ctxMenuInit) { window.ctxMenuInit = true; initContextMenuCharts(); } },
+    'final-version': function () { if (!window.finalChart) initFinalVersionChart(); }
 };
 
 function navigateTo(target) {

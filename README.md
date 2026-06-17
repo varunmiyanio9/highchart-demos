@@ -28,8 +28,16 @@ The URL hash selects the page, so you can deep-link to any demo:
 | Stack Bar Legends — full-custom | [#stack-bar-legends-full-custom](https://varunmiyanio9.github.io/highchart-demos/#stack-bar-legends-full-custom) |
 | Multi-Type Combined | [#multi-type-chart](https://varunmiyanio9.github.io/highchart-demos/#multi-type-chart) |
 | Context Menu | [#context-menu](https://varunmiyanio9.github.io/highchart-demos/#context-menu) |
+| ⭐ Final Version | [#final-version](https://varunmiyanio9.github.io/highchart-demos/#final-version) |
 
 > Push to `main` → GitHub Pages republishes the site automatically.
+
+The **Final Version** is the finalized presentation that combines the explored
+ideas into one chart: combined chart types, three stacked groups with a single
+grouped legend (with pagination), mouse + keyboard category selection (with font
+controls), right-click chart-type switching, a dynamic 4-year forecast timeline
+driven by the browser's current month, and a horizontal-scroll toggle that pins
+both y-axes.
 
 ## The "Custom vs Native" comparison
 

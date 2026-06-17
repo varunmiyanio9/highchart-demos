@@ -242,7 +242,8 @@ body {
     font-weight: 500;
 }
 
-.combined-toolbar select {
+.combined-toolbar select,
+.combined-toolbar input[type='month'] {
     margin-left: 8px;
     padding: 4px 8px;
     border: 1px solid #bdc3c7;
@@ -505,4 +506,86 @@ body {
     margin-top: 8px;
     font-size: 13px;
     color: #2c3e50;
+}
+
+/* ==========================================================================
+ * Final Version (FIN-1) — combined chart page
+ * ========================================================================== */
+
+/* Gold star marking the finalized example in the sidebar */
+.sidebar-star {
+    color: #f1c40f;
+    margin-right: 2px;
+}
+
+/* Horizontal scroll wrapper — when "Allow Scroll" is on, the chart keeps a
+ * fixed wide width and this wrapper provides the horizontal scrollbar. */
+.fin-scroll-wrap {
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+}
+
+/* Context menu header label (the flat menu's title row) */
+.ctx-menu-header {
+    padding: 6px 14px 8px;
+    margin-bottom: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #1a1a2e;
+    border-bottom: 1px solid #eee;
+    white-space: nowrap;
+}
+
+/* Allow-Scroll toggle switch in the toolbar */
+.fin-switch-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fin-switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 20px;
+}
+
+.fin-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.fin-switch-slider {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    background: #bdc3c7;
+    border-radius: 20px;
+    transition: background 0.18s;
+}
+
+.fin-switch-slider::before {
+    content: '';
+    position: absolute;
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.18s;
+}
+
+.fin-switch input:checked + .fin-switch-slider {
+    background: #3498db;
+}
+
+.fin-switch input:checked + .fin-switch-slider::before {
+    transform: translateX(18px);
+}
+
+.fin-switch input:focus + .fin-switch-slider {
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.4);
 }

@@ -66,6 +66,11 @@ var PAGE_META = {
         name: "Context Menu",
         description: "Custom right-click nested context menu",
     },
+    "final-version": {
+        name: "Final Version",
+        description:
+            "Finalized chart — combined types, grouped legend, selection, context menu, forecast, scroll toggle",
+    },
 };
 
 /* ── CHART REGISTRY (one entry per rendered chart instance) ────────── */
@@ -380,6 +385,25 @@ var CHART_REGISTRY = [
         ],
         nativeNotes:
             "chart.hoverSeries, series.setState(), series.update().",
+    },
+
+    // ─── Final Version (everything combined) ───
+    {
+        chartId: "FIN-1",
+        pageId: "final-version",
+        containerId: "fin-chart",
+        title: "Final Version — Combined Chart",
+        customNotes: [
+            "All-in-one: standalone bar + 3 stacked-bar groups (Product-1/2/3) + lines + area in a single chart with dual y-axes (combination idea from MTC-1).",
+            "Combined grouped legend (from MHC-1) — the three product stacks share ONE legend presentation: one header lists all three products, one member row toggles/highlights that member across all three stacks. Extra dummy KPI items demonstrate pagination.",
+            "Category selection (from CMB-1) — mouse (label click / background click / drag) + keyboard (Tab→Arrow→Space, Shift+Arrow range, Escape clear), with a font size / font weight toolbar.",
+            "Context menu (from CTX-2, simplified) — right-click for a FLAT menu to change chart type (Line / Bar / Area / Stacked Bar). No nested submenus, no series-splitting. Targets the hovered series, or all series on empty space.",
+            "Dynamic timeline — x-axis is a rolling 49-month window (two years before → two years after the browser's current month). Range bounds are fixed at load; the 'Current Month' input moves the forecast divider.",
+            "Forecast divider (from FC-8, changed) — renderer-drawn SOLID vertical line with hover tooltip sitting ON the current month's tick, drawn BEHIND the bars (zIndex 2, below the column series group) instead of on top.",
+            "Allow-Scroll switch — ON pins the chart container to a fixed wide width (scales with the bucket count) so the wrapper scrolls horizontally; OFF clears the width so all 25 months shrink to fit the visible area.",
+        ],
+        nativeNotes:
+            "Multiple series types, yAxis array, stack IDs + grouping, legend.useHTML + labelFormatter + maxHeight/navigation pagination, series.setState()/setVisible(), xAxis.plotBands, chart.zooming + events.selection, chart.renderer (forecast line), chart.update({chart:{width}}), accessibility keyboardNavigation.",
     },
 ];
 
