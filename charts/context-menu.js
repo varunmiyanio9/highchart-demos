@@ -1,14 +1,13 @@
 // =============================================================================
-// CONTEXT MENU DEMO — Two Approaches
+// CONTEXT MENU DEMO — Custom Right-Click Menu
 //
-// CHART 1 — HIGHCHARTS-NATIVE (built-in exporting module):
-//   - exporting.buttons.contextButton.menuItems   → flat menu with {text, onclick}
-//   - navigation.menuItemStyle / menuItemHoverStyle → styling the native menu
-//   - 'downloadPNG', 'viewFullscreen', 'printChart' → built-in named actions
-//   - chart.update() / series.update()             → type switching via HC API
-//   100% Highcharts config — no custom HTML, CSS, or event wiring needed.
+// NOTE: The built-in exporting-module context button (CHART 1, "CTX-1") is
+// currently disabled — export is not a focus right now and the exporting
+// module is no longer loaded. The CTX-1 chart init, its container, and its
+// registry entry are commented out so they can be re-enabled together once
+// the exporting module is added back.
 //
-// CHART 2 — FULLY CUSTOM IMPLEMENTATION (right-click nested context menu):
+// FULLY CUSTOM IMPLEMENTATION (right-click nested context menu):
 //   Highcharts does NOT provide: right-click menus, nested submenus, or
 //   per-series targeting. Everything below is custom:
 //
@@ -23,8 +22,6 @@
 //   - chart.hoverSeries / chart.hoverPoint   → detect which series was right-clicked
 //   - series.setState('hover'/'inactive'/'') → lock/clear visual highlight
 //   - series.update({type, stacking})        → change type of targeted series
-//   - chart.exportChart({type})              → export via HC exporting module
-//   - chart.fullscreen.toggle() / chart.print() → HC built-in actions
 // =============================================================================
 
 function initContextMenuCharts() {
@@ -130,9 +127,13 @@ function initContextMenuCharts() {
     }
 
     // =========================================================================
-    // CHART 1: Highcharts-native exporting menu with custom menuItems
-    // Everything here is Highcharts config — the library renders the menu.
+    // CHART 1 (CTX-1): Highcharts-native exporting menu with custom menuItems.
+    // DISABLED — export is out of scope and the exporting module is not loaded.
+    // Re-enable this block together with the #ctx-builtin-chart container in
+    // index.html and the CTX-1 registry entry once exporting is added back.
+    // When enabled, the library renders the menu entirely from this config.
     // =========================================================================
+    /*
     Highcharts.chart('ctx-builtin-chart', {
         chart: { type: 'column' },
         title: { text: 'Built-in Context Button — Chart Type Switcher' },
@@ -169,6 +170,7 @@ function initContextMenuCharts() {
             menuItemHoverStyle: { background: '#f0f4ff' }
         }
     });
+    */
 
     // =========================================================================
     // CHART 2: Custom right-click context menu (fully custom implementation)
@@ -208,11 +210,7 @@ function initContextMenuCharts() {
                 }
             }
         },
-        series: JSON.parse(JSON.stringify(seriesData)),
-        // Disable built-in hamburger button — we use custom right-click instead
-        exporting: {
-            buttons: { contextButton: { enabled: false } }
-        }
+        series: JSON.parse(JSON.stringify(seriesData))
     });
 
     // =========================================================================
@@ -306,14 +304,12 @@ function initContextMenuCharts() {
         if (e.key === 'Escape') hideMenu();
     });
 
-    // Custom: event delegation on menu items (data-type, data-export, data-action)
+    // Custom: event delegation on menu items (data-type)
     menu.addEventListener('click', function (e) {
-        var item = e.target.closest('[data-type], [data-export], [data-action]');
+        var item = e.target.closest('[data-type]');
         if (!item) return;
 
         var type = item.dataset.type;
-        var exportFmt = item.dataset.export;
-        var action = item.dataset.action;
 
         if (type) {
             // Custom: apply type change only to the targeted series (not all)
@@ -349,16 +345,6 @@ function initContextMenuCharts() {
                     switchType(chart2, type);
                 }
             }
-        } else if (exportFmt) {
-            // Highcharts-native: chart.exportChart() from exporting module
-            var typeMap = { png: 'image/png', svg: 'image/svg+xml', pdf: 'application/pdf' };
-            chart2.exportChart({ type: typeMap[exportFmt] });
-        } else if (action === 'fullscreen') {
-            // Highcharts-native: fullscreen API from exporting module
-            chart2.fullscreen.toggle();
-        } else if (action === 'print') {
-            // Highcharts-native: print API from exporting module
-            chart2.print();
         }
 
         hideMenu();

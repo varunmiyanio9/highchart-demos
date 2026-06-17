@@ -270,14 +270,5 @@ Highcharts.chart('multi-type-chart-main', {
             'Combined chart with Revenue bar, Cost A and Cost B stacked bar, ' +
             '10 beverage brand stacked bar (Pepsi, 7Up, Coca-Cola, Sprite, Fanta, ' +
             'Mountain Dew, Dr Pepper, Red Bull, Monster, Gatorade), a Trend line, and a Volume area.'
-    },
-
-    exporting: {
-        enabled: true,
-        buttons: {
-            contextButton: {
-                menuItems: ['downloadPNG', 'downloadSVG', 'separator', 'downloadCSV']
-            }
-        }
     }
 });

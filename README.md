@@ -93,7 +93,7 @@ Every chart has a stable ID (e.g. `FC-1`, `CTX-2`) shown as a dark pill badge in
 
 ## Tech
 
-- **Highcharts** (vendored in `library/`) + modules: `highcharts-more`, exporting, offline-exporting, export-data, accessibility.
+- **Highcharts** (vendored in `library/`) + modules: `highcharts-more`, accessibility. Version is switchable via the import block in `index.html` (12.4.0 active; 12.6.0 / 13.0.0 available). Export modules are intentionally not loaded.
 - Plain ES5-style JavaScript (`var`, IIFEs / global init functions) — no bundler, no npm, no framework.
 
 ## Contributing

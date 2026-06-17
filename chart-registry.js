@@ -11,7 +11,7 @@
 var PAGE_META = {
     "bar-chart": {
         name: "Bar Chart",
-        description: "Basic bar chart with export and accessibility",
+        description: "Basic bar chart with accessibility",
     },
     "axis-selection": {
         name: "Axis Selection",
@@ -64,8 +64,7 @@ var PAGE_META = {
     },
     "context-menu": {
         name: "Context Menu",
-        description:
-            "Built-in exporting menu + custom right-click nested context menu",
+        description: "Custom right-click nested context menu",
     },
 };
 
@@ -352,7 +351,10 @@ var CHART_REGISTRY = [
             "Multiple series types, yAxis array, stack IDs, grouping, pointPlacement.",
     },
 
-    // ─── Context Menu (2 charts) ───
+    // ─── Context Menu (CTX-1 disabled, CTX-2 active)───
+    /* CTX-1 (built-in exporting menu) disabled while export is out of scope.
+       Re-enable together with the #ctx-builtin-chart container in index.html
+       and the CTX-1 init in charts/context-menu.js.
     {
         chartId: "CTX-1",
         pageId: "context-menu",
@@ -364,6 +366,7 @@ var CHART_REGISTRY = [
         nativeNotes:
             "exporting.buttons.contextButton.menuItems, chart type switching via series.update().",
     },
+    */
     {
         chartId: "CTX-2",
         pageId: "context-menu",
@@ -376,7 +379,7 @@ var CHART_REGISTRY = [
             "Type switching per-series — calls series.update({type}) on targeted series only.",
         ],
         nativeNotes:
-            "chart.hoverSeries, series.setState(), series.update(), chart.exportChart(), chart.fullscreen.toggle(), chart.print().",
+            "chart.hoverSeries, series.setState(), series.update().",
     },
 ];
 

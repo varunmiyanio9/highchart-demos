@@ -1,182 +1,361 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Highcharts Demo</title>
-    <!-- Highcharts Core -->
-    <script src="library/highcharts.js"></script>
-    <script src="library/modules/core-extensions/highcharts-more.js"></script>
-    <!-- <script src="library/highcharts-more.js"></script> -->
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Highcharts Demo</title>
+        <!-- ============================================================
+         HIGHCHARTS LIBRARY VERSION SWITCHER
+         To switch versions: uncomment exactly ONE block below and
+         comment out the others. Keep only one block active at a time.
+         NOTE: the 12.6.0 and 13.0.0 distributions don't bundle the
+         export modules, so those blocks reuse the shared export
+         modules under library/modules/export/.
+         ============================================================ -->
 
-    <!-- Export -->
-    <script src="library/modules/export/exporting.js"></script>
-    <script src="library/modules/export/offline-exporting.js"></script>
-    <script src="library/modules/export/export-data.js"></script>
+        <!-- ===== Highcharts 12.4.0 (ACTIVE) ===== -->
+        <script src="library/highcharts.js"></script>
+        <script src="library/modules/core-extensions/highcharts-more.js"></script>
+        <script src="library/modules/accessibility/accessibility.js"></script>
 
-    <!-- Accessibility -->
-    <script src="library/modules/accessibility/accessibility.js"></script>
-    <!-- Material Symbols (font icons for legend) -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <header class="header">
-        <h1>Highcharts Demo</h1>
-    </header>
-    <div class="layout">
-        <aside class="sidebar">
-            <nav>
-                <ul>
-                    <li><a href="#" data-chart="bar-chart">Bar Chart</a></li>
-                    <li><a href="#" data-chart="axis-selection">Axis Selection</a></li>
-                    <li><a href="#" data-chart="bucket-selection">Bucket Selection</a></li>
-                    <li><a href="#" data-chart="tick-selection">Axis Tick Selection</a></li>
-                    <li><a href="#" data-chart="label-click">Label Click Selection</a></li>
-                    <li><a href="#" data-chart="combined-selection">Combined Selection</a></li>
-                    <li><a href="#" data-chart="forecast">Forecast</a></li>
-                    <li class="sidebar-divider"></li>
-                    <li><a href="#" data-chart="stack-bar-legends-default">Stack Bar Legends (Default)</a></li>
-                    <li><a href="#" data-chart="stack-bar-legends-min-custom">Stack Bar Legends (min-custom)</a></li>
-                    <li><a href="#" data-chart="stack-bar-legends-full-custom">Stack Bar Legends (full-custom)</a></li>
-                    <li class="sidebar-divider"></li>
-                    <li><a href="#" data-chart="multi-type-chart">Multi-Type Combined</a></li>
-                    <li><a href="#" data-chart="context-menu">Context Menu</a></li>
-                </ul>
-            </nav>
-        </aside>
-        <main class="content">
-            <div id="bar-chart" class="chart-container">
-                <div id="bar-chart-main"></div>
-            </div>
-            <div id="axis-selection" class="chart-container" style="display:none;">
-                <div id="selection-chart"></div>
-                <div id="selection-detail" class="detail-panel">
-                    <h3>Selected Points Detail</h3>
-                    <p class="hint">Click, Ctrl+Click, or drag to select bars. Use Tab → Arrow keys → Space for keyboard selection. Shift+Arrow for range select.</p>
-                    <div id="detail-content"></div>
-                </div>
-            </div>
-            <div id="bucket-selection" class="chart-container" style="display:none;">
-                <h2 class="bucket-section-title">Bucket Selection — Multi Chart Types</h2>
-                <p class="bucket-section-hint">Selection is shared across all charts. Click, Ctrl+Click, or drag to select buckets.</p>
-                <div id="bucket-chart-column"></div>
-                <div id="bucket-chart-line"></div>
-                <div id="bucket-chart-area"></div>
-                <div id="bucket-detail" class="detail-panel">
-                    <h3>Selected Buckets Detail</h3>
-                    <p class="hint">Click to select entire category. Ctrl+Click to multi-select. Drag to select range. Keyboard: Tab into chart → Arrow keys → Space to toggle. Escape to clear.</p>
-                    <div id="bucket-content"></div>
-                </div>
-            </div>
-            <div id="tick-selection" class="chart-container" style="display:none;">
-                <div id="tick-chart"></div>
-                <div id="tick-toolbar" class="tick-toolbar" role="toolbar" aria-label="Category selection"></div>
-                <div id="tick-detail" class="detail-panel">
-                    <h3>Selected Categories Detail</h3>
-                    <p class="hint">Click buttons to select categories. Ctrl+Click for multi-select. Shift+Click for range. Keyboard: Tab into buttons → Arrow keys to move → Space to toggle. Escape to clear.</p>
-                    <div id="tick-content"></div>
-                </div>
-            </div>
-            <div id="label-click" class="chart-container" style="display:none;">
-                <div id="label-chart"></div>
-                <div id="label-detail" class="detail-panel">
-                    <h3>Selected Categories Detail</h3>
-                    <p class="hint">Click x-axis labels to select. Ctrl+Click for multi-select. Click chart background to clear.</p>
-                    <div id="label-content"></div>
-                </div>
-            </div>
-            <div id="combined-selection" class="chart-container" style="display:none;">
-                <h2 class="bucket-section-title">Combined Selection (SVG) — Bidirectional Label + Grid</h2>
-                <p class="bucket-section-hint">Drag on chart background for range select. Click x-axis labels. Ctrl+Click for multi-select. Keyboard: Tab → Arrow → Space.</p>
-                <div id="combined-toolbar" class="combined-toolbar"></div>
-                <div id="combined-chart-column"></div>
-                <div id="combined-chart-line"></div>
-                <div id="combined-chart-area"></div>
-                <div id="combined-detail" class="detail-panel">
-                    <h3>Selected Categories Detail</h3>
-                    <p class="hint">Drag to select range on grid. Click labels for single select. Ctrl+Click for multi. Shift+Arrow for range. Escape to clear.</p>
-                    <div id="combined-content"></div>
-                </div>
-            </div>
-            <div id="forecast" class="chart-container" style="display:none;">
-                <h2 class="bucket-section-title">Forecast Charts — Historical vs Predicted</h2>
-                <p class="bucket-section-hint">Each chart shows historical data (solid) and forecast data (dotted/translucent) with confidence bands. Orange line marks the forecast start.</p>
-                <div id="forecast-line-chart"></div>
-                <div id="forecast-bar-chart"></div>
-                <div id="forecast-stacked-chart"></div>
-                <div id="forecast-area-chart"></div>
-                <div id="forecast-bonus-chart"></div>
-                <div id="forecast-divider-center"></div>
-                <div id="forecast-divider-left"></div>
-                <div id="forecast-tooltip-center"></div>
-                <div id="forecast-tooltip-left"></div>
-            </div>
-            <div id="stack-bar-legends-default" class="chart-container" style="display:none;">
-                <div id="sbl-default-chart" style="height:480px;"></div>
-            </div>
-            <div id="stack-bar-legends-min-custom" class="chart-container" style="display:none;">
-                <div id="msl-hc-chart" style="height:480px;"></div>
-            </div>
-            <div id="multi-type-chart" class="chart-container chart-container--fullscreen" style="display:none;">
-                <div id="multi-type-chart-main"></div>
-            </div>
-            <div id="stack-bar-legends-full-custom" class="chart-container" style="display:none;">
-                <div class="msl-wrap">
-                    <div id="msl-chart"></div>
-                    <div class="msl-legend" id="msl-legend-bar"></div>
-                </div>
-            </div>
-            <div id="context-menu" class="chart-container" style="display:none;">
-                <h2 class="bucket-section-title">Context Menu — Built-in & Custom Right-Click</h2>
-                <p class="bucket-section-hint">Chart 1: Highcharts built-in exporting menu customized with type switching options.<br>Chart 2: Right-click for a custom nested context menu (industry standard).</p>
-                <div id="ctx-builtin-chart" style="margin-bottom:30px;"></div>
-                <div id="ctx-custom-chart"></div>
-                <!-- Custom context menu (hidden, positioned by JS on right-click) -->
-                <div id="ctx-custom-menu" class="ctx-menu" style="display:none;">
-                    <ul class="ctx-menu-list">
-                        <li class="ctx-menu-item ctx-menu-item--has-sub">
-                            <span class="ctx-menu-label" id="ctx-menu-series-label">Change Chart Type</span>
-                            <span class="ctx-menu-arrow">&#9654;</span>
-                            <ul class="ctx-menu-sub">
-                                <li class="ctx-menu-item" data-type="line">Line</li>
-                                <li class="ctx-menu-item" data-type="column">Bar (Column)</li>
-                                <li class="ctx-menu-item" data-type="area">Area</li>
-                                <li class="ctx-menu-item" data-type="stacked">Stacked Bar</li>
-                            </ul>
+        <!-- ===== Highcharts 12.6.0 =====
+    <script src="library/highcharts-12.6.0/code/highcharts.js"></script>
+    <script src="library/highcharts-12.6.0/code/highcharts-more.js"></script>
+    <script src="library/highcharts-12.6.0/code/modules/accessibility.js"></script>
+    ===== End 12.6.0 ===== -->
+
+        <!-- ===== Highcharts 13.0.0 =====
+    <script src="library/Highcharts-13.0.0/code/highcharts.js"></script>
+    <script src="library/Highcharts-13.0.0/code/highcharts-more.js"></script>
+    <script src="library/Highcharts-13.0.0/code/modules/accessibility.js"></script>
+    ===== End 13.0.0 ===== -->
+
+        <!-- Material Symbols (font icons for legend) -->
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+            integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        />
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <header class="header">
+            <h1>Highcharts Demo</h1>
+        </header>
+        <div class="layout">
+            <aside class="sidebar">
+                <nav>
+                    <ul>
+                        <li>
+                            <a href="#" data-chart="bar-chart">Bar Chart</a>
                         </li>
-                        <li class="ctx-menu-separator"></li>
-                        <li class="ctx-menu-item ctx-menu-item--has-sub">
-                            <span class="ctx-menu-label">Export</span>
-                            <span class="ctx-menu-arrow">&#9654;</span>
-                            <ul class="ctx-menu-sub">
-                                <li class="ctx-menu-item" data-export="png">Download PNG</li>
-                                <li class="ctx-menu-item" data-export="svg">Download SVG</li>
-                                <li class="ctx-menu-item" data-export="pdf">Download PDF</li>
-                            </ul>
+                        <li>
+                            <a href="#" data-chart="axis-selection"
+                                >Axis Selection</a
+                            >
                         </li>
-                        <li class="ctx-menu-separator"></li>
-                        <li class="ctx-menu-item" data-action="fullscreen">View Fullscreen</li>
-                        <li class="ctx-menu-item" data-action="print">Print Chart</li>
+                        <li>
+                            <a href="#" data-chart="bucket-selection"
+                                >Bucket Selection</a
+                            >
+                        </li>
+                        <li>
+                            <a href="#" data-chart="tick-selection"
+                                >Axis Tick Selection</a
+                            >
+                        </li>
+                        <li>
+                            <a href="#" data-chart="label-click"
+                                >Label Click Selection</a
+                            >
+                        </li>
+                        <li>
+                            <a href="#" data-chart="combined-selection"
+                                >Combined Selection</a
+                            >
+                        </li>
+                        <li><a href="#" data-chart="forecast">Forecast</a></li>
+                        <li class="sidebar-divider"></li>
+                        <li>
+                            <a href="#" data-chart="stack-bar-legends-default"
+                                >Stack Bar Legends (Default)</a
+                            >
+                        </li>
+                        <li>
+                            <a
+                                href="#"
+                                data-chart="stack-bar-legends-min-custom"
+                                >Stack Bar Legends (min-custom)</a
+                            >
+                        </li>
+                        <li>
+                            <a
+                                href="#"
+                                data-chart="stack-bar-legends-full-custom"
+                                >Stack Bar Legends (full-custom)</a
+                            >
+                        </li>
+                        <li class="sidebar-divider"></li>
+                        <li>
+                            <a href="#" data-chart="multi-type-chart"
+                                >Multi-Type Combined</a
+                            >
+                        </li>
+                        <li>
+                            <a href="#" data-chart="context-menu"
+                                >Context Menu</a
+                            >
+                        </li>
                     </ul>
+                </nav>
+            </aside>
+            <main class="content">
+                <div id="bar-chart" class="chart-container">
+                    <div id="bar-chart-main"></div>
                 </div>
-            </div>
-        </main>
-    </div>
-    <script src="charts/bar-chart.js"></script>
-    <script src="charts/axis-selection.js"></script>
-    <script src="charts/bucket-selection.js"></script>
-    <script src="charts/axis-tick-selection.js"></script>
-    <script src="charts/label-click-selection.js"></script>
-    <script src="charts/combined-selection.js"></script>
-    <script src="charts/forecast.js"></script>
-    <script src="charts/stack-bar-legends-default.js"></script>
-    <script src="charts/stack-bar-legends-min-custom.js"></script>
-    <script src="charts/stack-bar-legends-full-custom.js"></script>
-    <script src="charts/multi-type-chart.js"></script>
-    <script src="charts/context-menu.js"></script>
-    <script src="chart-registry.js"></script>
-    <script src="charts.js"></script>
-</body>
+                <div
+                    id="axis-selection"
+                    class="chart-container"
+                    style="display: none"
+                >
+                    <div id="selection-chart"></div>
+                    <div id="selection-detail" class="detail-panel">
+                        <h3>Selected Points Detail</h3>
+                        <p class="hint">
+                            Click, Ctrl+Click, or drag to select bars. Use Tab →
+                            Arrow keys → Space for keyboard selection.
+                            Shift+Arrow for range select.
+                        </p>
+                        <div id="detail-content"></div>
+                    </div>
+                </div>
+                <div
+                    id="bucket-selection"
+                    class="chart-container"
+                    style="display: none"
+                >
+                    <h2 class="bucket-section-title">
+                        Bucket Selection — Multi Chart Types
+                    </h2>
+                    <p class="bucket-section-hint">
+                        Selection is shared across all charts. Click,
+                        Ctrl+Click, or drag to select buckets.
+                    </p>
+                    <div id="bucket-chart-column"></div>
+                    <div id="bucket-chart-line"></div>
+                    <div id="bucket-chart-area"></div>
+                    <div id="bucket-detail" class="detail-panel">
+                        <h3>Selected Buckets Detail</h3>
+                        <p class="hint">
+                            Click to select entire category. Ctrl+Click to
+                            multi-select. Drag to select range. Keyboard: Tab
+                            into chart → Arrow keys → Space to toggle. Escape to
+                            clear.
+                        </p>
+                        <div id="bucket-content"></div>
+                    </div>
+                </div>
+                <div
+                    id="tick-selection"
+                    class="chart-container"
+                    style="display: none"
+                >
+                    <div id="tick-chart"></div>
+                    <div
+                        id="tick-toolbar"
+                        class="tick-toolbar"
+                        role="toolbar"
+                        aria-label="Category selection"
+                    ></div>
+                    <div id="tick-detail" class="detail-panel">
+                        <h3>Selected Categories Detail</h3>
+                        <p class="hint">
+                            Click buttons to select categories. Ctrl+Click for
+                            multi-select. Shift+Click for range. Keyboard: Tab
+                            into buttons → Arrow keys to move → Space to toggle.
+                            Escape to clear.
+                        </p>
+                        <div id="tick-content"></div>
+                    </div>
+                </div>
+                <div
+                    id="label-click"
+                    class="chart-container"
+                    style="display: none"
+                >
+                    <div id="label-chart"></div>
+                    <div id="label-detail" class="detail-panel">
+                        <h3>Selected Categories Detail</h3>
+                        <p class="hint">
+                            Click x-axis labels to select. Ctrl+Click for
+                            multi-select. Click chart background to clear.
+                        </p>
+                        <div id="label-content"></div>
+                    </div>
+                </div>
+                <div
+                    id="combined-selection"
+                    class="chart-container"
+                    style="display: none"
+                >
+                    <h2 class="bucket-section-title">
+                        Combined Selection (SVG) — Bidirectional Label + Grid
+                    </h2>
+                    <p class="bucket-section-hint">
+                        Drag on chart background for range select. Click x-axis
+                        labels. Ctrl+Click for multi-select. Keyboard: Tab →
+                        Arrow → Space.
+                    </p>
+                    <div id="combined-toolbar" class="combined-toolbar"></div>
+                    <div id="combined-chart-column"></div>
+                    <div id="combined-chart-line"></div>
+                    <div id="combined-chart-area"></div>
+                    <div id="combined-detail" class="detail-panel">
+                        <h3>Selected Categories Detail</h3>
+                        <p class="hint">
+                            Drag to select range on grid. Click labels for
+                            single select. Ctrl+Click for multi. Shift+Arrow for
+                            range. Escape to clear.
+                        </p>
+                        <div id="combined-content"></div>
+                    </div>
+                </div>
+                <div
+                    id="forecast"
+                    class="chart-container"
+                    style="display: none"
+                >
+                    <h2 class="bucket-section-title">
+                        Forecast Charts — Historical vs Predicted
+                    </h2>
+                    <p class="bucket-section-hint">
+                        Each chart shows historical data (solid) and forecast
+                        data (dotted/translucent) with confidence bands. Orange
+                        line marks the forecast start.
+                    </p>
+                    <div id="forecast-line-chart"></div>
+                    <div id="forecast-bar-chart"></div>
+                    <div id="forecast-stacked-chart"></div>
+                    <div id="forecast-area-chart"></div>
+                    <div id="forecast-bonus-chart"></div>
+                    <div id="forecast-divider-center"></div>
+                    <div id="forecast-divider-left"></div>
+                    <div id="forecast-tooltip-center"></div>
+                    <div id="forecast-tooltip-left"></div>
+                </div>
+                <div
+                    id="stack-bar-legends-default"
+                    class="chart-container"
+                    style="display: none"
+                >
+                    <div id="sbl-default-chart" style="height: 480px"></div>
+                </div>
+                <div
+                    id="stack-bar-legends-min-custom"
+                    class="chart-container"
+                    style="display: none"
+                >
+                    <div id="msl-hc-chart" style="height: 480px"></div>
+                </div>
+                <div
+                    id="multi-type-chart"
+                    class="chart-container chart-container--fullscreen"
+                    style="display: none"
+                >
+                    <div id="multi-type-chart-main"></div>
+                </div>
+                <div
+                    id="stack-bar-legends-full-custom"
+                    class="chart-container"
+                    style="display: none"
+                >
+                    <div class="msl-wrap">
+                        <div id="msl-chart"></div>
+                        <div class="msl-legend" id="msl-legend-bar"></div>
+                    </div>
+                </div>
+                <div
+                    id="context-menu"
+                    class="chart-container"
+                    style="display: none"
+                >
+                    <h2 class="bucket-section-title">
+                        Context Menu — Custom Right-Click
+                    </h2>
+                    <p class="bucket-section-hint">
+                        Right-click on a series or bar for a custom nested
+                        context menu (industry standard) to switch chart type
+                        per series.
+                    </p>
+                    <!-- CTX-1 (built-in exporting menu) disabled: export is out of
+                         scope and the exporting module is not loaded. Re-enable this
+                         container with the CTX-1 init in charts/context-menu.js and
+                         the CTX-1 registry entry once exporting is added back.
+                    <div
+                        id="ctx-builtin-chart"
+                        style="margin-bottom: 30px"
+                    ></div>
+                    -->
+                    <div id="ctx-custom-chart"></div>
+                    <!-- Custom context menu (hidden, positioned by JS on right-click) -->
+                    <div
+                        id="ctx-custom-menu"
+                        class="ctx-menu"
+                        style="display: none"
+                    >
+                        <ul class="ctx-menu-list">
+                            <li class="ctx-menu-item ctx-menu-item--has-sub">
+                                <span
+                                    class="ctx-menu-label"
+                                    id="ctx-menu-series-label"
+                                    >Change Chart Type</span
+                                >
+                                <span class="ctx-menu-arrow">&#9654;</span>
+                                <ul class="ctx-menu-sub">
+                                    <li class="ctx-menu-item" data-type="line">
+                                        Line
+                                    </li>
+                                    <li
+                                        class="ctx-menu-item"
+                                        data-type="column"
+                                    >
+                                        Bar (Column)
+                                    </li>
+                                    <li class="ctx-menu-item" data-type="area">
+                                        Area
+                                    </li>
+                                    <li
+                                        class="ctx-menu-item"
+                                        data-type="stacked"
+                                    >
+                                        Stacked Bar
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <script src="charts/bar-chart.js"></script>
+        <script src="charts/axis-selection.js"></script>
+        <script src="charts/bucket-selection.js"></script>
+        <script src="charts/axis-tick-selection.js"></script>
+        <script src="charts/label-click-selection.js"></script>
+        <script src="charts/combined-selection.js"></script>
+        <script src="charts/forecast.js"></script>
+        <script src="charts/stack-bar-legends-default.js"></script>
+        <script src="charts/stack-bar-legends-min-custom.js"></script>
+        <script src="charts/stack-bar-legends-full-custom.js"></script>
+        <script src="charts/multi-type-chart.js"></script>
+        <script src="charts/context-menu.js"></script>
+        <script src="chart-registry.js"></script>
+        <script src="charts.js"></script>
+    </body>
 </html>
