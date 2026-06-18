@@ -84,6 +84,16 @@
 //      CUSTOM : drawForecastDivider() draws a path + callout at a LOW zIndex so
 //               it sits BEHIND the bars.
 //
+//  • Point (data) labels — Line / Bar / Stack Bar checkboxes
+//      NATIVE : series.dataLabels.enabled (value per point; Highcharts centres
+//               column labels INSIDE stacked segments by default) +
+//               yAxis.stackLabels.enabled (the stack TOTAL drawn on top of each
+//               tower — fully built-in, it sums the visible stack itself).
+//      CUSTOM : none on the chart — only the toggle plumbing. applyPointLabels()
+//               flips the native flags via series.update()/yAxis.update(); the
+//               `pointLabels` state is also read by buildSeries()/the yAxis config
+//               so labels persist across the Allow-Scroll rebuild.
+//
 //  • Allow-scroll switch
 //      NATIVE : chart.scrollablePlotArea.minWidth (pins both y-axes, scrolls the
 //               plot + x-axis).
@@ -105,6 +115,7 @@
 //   [feature: legend-hover]      hover a legend entry → highlight it, dim the rest
 //   [feature: legend-keyboard]   arrow-key nav skips the blank divider slot
 //   [feature: legend-pagination] NATIVE 2-row cap + pager (dummy KPI overflow)
+//   [feature: point-labels]      native dataLabels per type + native stack total on top
 //   [feature: selection]         click / drag / shift-hover / keyboard month select
 //   [feature: forecast-divider]  renderer line at the current month, drawn behind bars
 //   [feature: current-month]     month input that moves the forecast boundary
@@ -290,6 +301,12 @@
     var shiftKeyDown = false;
     var isKeyboardInteraction = false;
 
+    // [feature: point-labels] — which series types show NATIVE Highcharts point
+    // (data) labels. All three are plain `dataLabels.enabled` flags; the stack
+    // toggle additionally turns on the NATIVE `yAxis.stackLabels` (the total on
+    // top of each tower). No custom label rendering — pure Highcharts defaults.
+    var pointLabels = { line: false, bar: false, stack: false };
+
     document.addEventListener("keydown", function (e) {
         if (e.key === "Shift") shiftKeyDown = true;
     });
@@ -369,6 +386,10 @@
                     showInLegend: g.id === FIRST_GROUP,
                     borderWidth: 0.5,
                     borderColor: "#fff",
+                    // [feature: point-labels] NATIVE per-point value inside each
+                    // stacked segment (Highcharts centres column dataLabels inside
+                    // the box for stacked series by default — no positioning code).
+                    dataLabels: { enabled: pointLabels.stack },
                     legendIndex: LEGEND_ORDER.memberStart + mi,
                     // Toggling this member toggles the same member across all
                     // three stacks at once — handled centrally in
@@ -393,6 +414,8 @@
             stack: "rev",
             yAxis: 0,
             showInLegend: true,
+            // [feature: point-labels] NATIVE value label on the standalone bar.
+            dataLabels: { enabled: pointLabels.bar },
             legendIndex: LEGEND_ORDER.revenue,
             custom: { isBar: true, barColor: REVENUE.color },
         });
@@ -427,6 +450,8 @@
                 zIndex: 6,
                 states: { hover: { lineWidthPlus: 0 } },
                 showInLegend: true,
+                // [feature: point-labels] NATIVE value label above each line point.
+                dataLabels: { enabled: pointLabels.line },
                 legendIndex: LEGEND_ORDER.lineStart + li,
                 custom: { isLine: true, lineColor: l.color },
             });
@@ -1089,7 +1114,17 @@
         var toolbar = document.getElementById("fin-toolbar");
         if (!toolbar) return;
 
-        var html = '<label>Font Size: <select id="fin-font-size">';
+        // [feature: point-labels] — "Enable Point Label:" with one checkbox per
+        // series type. Each just flips a native dataLabels flag (stack also flips
+        // the native stackLabels total); no custom label drawing.
+        var html =
+            '<span class="fin-pl-group"><span class="fin-pl-title">Enable Point Label:</span>' +
+            `<label><input type="checkbox" id="fin-pl-line"${pointLabels.line ? " checked" : ""}> Line</label>` +
+            `<label><input type="checkbox" id="fin-pl-bar"${pointLabels.bar ? " checked" : ""}> Bar</label>` +
+            `<label><input type="checkbox" id="fin-pl-stack"${pointLabels.stack ? " checked" : ""}> Stack Bar</label>` +
+            "</span>";
+
+        html += '<label>Font Size: <select id="fin-font-size">';
         FONT_SIZE_OPTIONS.forEach(function (size) {
             html += `<option value="${size}"${size === currentFontSize ? " selected" : ""}>${parseInt(size, 10)}px</option>`;
         });
@@ -1108,6 +1143,27 @@
         html += `<label class="fin-switch-label">Allow Scroll<span class="fin-switch"><input type="checkbox" id="fin-allow-scroll"${allowScroll ? " checked" : ""}><span class="fin-switch-slider"></span></span></label>`;
 
         toolbar.innerHTML = html;
+
+        // [feature: point-labels] — each checkbox flips its slice of state, then
+        // re-applies the native labels to the live chart.
+        document
+            .getElementById("fin-pl-line")
+            .addEventListener("change", function () {
+                pointLabels.line = this.checked;
+                applyPointLabels();
+            });
+        document
+            .getElementById("fin-pl-bar")
+            .addEventListener("change", function () {
+                pointLabels.bar = this.checked;
+                applyPointLabels();
+            });
+        document
+            .getElementById("fin-pl-stack")
+            .addEventListener("change", function () {
+                pointLabels.stack = this.checked;
+                applyPointLabels();
+            });
 
         document
             .getElementById("fin-font-size")
@@ -1175,6 +1231,41 @@
                 attachLabelHandlers();
             }
         }, 50);
+    }
+
+    /* ── POINT (DATA) LABELS — native, per series type ────────────────────
+       [feature: point-labels]
+       FEATURE : three checkboxes ("Enable Point Label: Line / Bar / Stack Bar")
+                 toggle Highcharts' built-in point labels on the matching series.
+       NATIVE  : series.dataLabels.enabled draws each point's value; for the stack
+                 toggle, yAxis.stackLabels.enabled adds the NATIVE total on top of
+                 each tower. Both are stock Highcharts — no label rendering code,
+                 no positioning, no formatter (default = the y value).
+       CUSTOM  : only the toggle plumbing. State lives in `pointLabels`, which
+                 buildSeries()/the yAxis config also read so the labels survive the
+                 Allow-Scroll rebuild. This function applies a live checkbox change
+                 to the existing chart via native series.update()/yAxis.update().
+       ROLE MAP: line → custom.isLine (Run Rate, Trend); bar → custom.isBar
+                 (Revenue); stack → custom.isMember (the 3×5 stacked members) +
+                 the axis stackLabels. Area/header/divider/dummy are untouched. */
+
+    function applyPointLabels() {
+        if (!chart) return;
+        chart.series.forEach(function (s) {
+            var c = s.options.custom || {};
+            var on;
+            if (c.isLine) on = pointLabels.line;
+            else if (c.isBar) on = pointLabels.bar;
+            else if (c.isMember) on = pointLabels.stack;
+            else return; // area / header / divider / dummy — not toggled here
+            s.update({ dataLabels: { enabled: on } }, false);
+        });
+        // Stack total on top of each tower — the native stackLabels switch.
+        chart.yAxis[0].update(
+            { stackLabels: { enabled: pointLabels.stack } },
+            false,
+        );
+        chart.redraw(); // redraw handler re-applies selection label styles
     }
 
     function applyScroll() {
@@ -1626,8 +1717,12 @@
                         },
                     },
                     gridLineColor: "#ededf0",
+                    // [feature: point-labels] NATIVE stack total on TOP of each
+                    // tower. This is 100% built-in Highcharts (yAxis.stackLabels) —
+                    // it sums every visible series in a stack and draws the total
+                    // above the column. Toggled by the "Stack Bar" point-label box.
                     stackLabels: {
-                        enabled: false,
+                        enabled: pointLabels.stack,
                     },
                 },
                 {
