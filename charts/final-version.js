@@ -99,6 +99,7 @@
 //
 //   [feature: data]              CATEGORIES / MEMBERS / GROUPS + series builder
 //   [feature: combined-legend]   grouped HTML legend look (labelFormatter)
+//   [feature: legend-order]      native legendIndex: others → divider → group block
 //   [feature: legend-member-toggle]  one click hides a member across all 3 stacks
 //   [feature: legend-group-toggle]   click a product NAME → hide its whole stack
 //   [feature: legend-hover]      hover a legend entry → highlight it, dim the rest
@@ -314,6 +315,25 @@
     function buildSeries() {
         var defs = [];
 
+        // ── Legend display order (native `legendIndex`) ──
+        // [feature: legend-order]
+        // legendIndex reorders the LEGEND only — it does NOT touch the plotted
+        // stacking order inside each tower or the left-to-right column cluster
+        // order (those still follow the defs push order below, unchanged). Wanted
+        // legend order: the standalone "other" series first (Revenue + lines +
+        // area), then the blank divider, then the combined product-group block
+        // (header + members). The dummy KPI items stay LAST so they overflow into
+        // pagination instead of pushing the real items off the visible rows.
+        var LEGEND_ORDER = {
+            revenue: 0,
+            lineStart: 1, // Run Rate (1), Trend (2)
+            area: 3, // Volume
+            divider: 4,
+            groupHeader: 5,
+            memberStart: 6, // Item-1 … Item-5 → 6 … 10
+            dummyStart: 11,
+        };
+
         // ── Three stacked product groups ──
         // Group-header dummy series (data:[]) — one shown in the legend, it
         // renders the combined "Product-1  Product-2  Product-3:" presentation.
@@ -329,13 +349,14 @@
                 borderWidth: 0,
                 showInLegend: g.id === FIRST_GROUP,
                 enableMouseTracking: false,
+                legendIndex: LEGEND_ORDER.groupHeader,
                 // Group header is presentation only — the legend's itemClick
                 // handler preventDefaults clicks on it (see legend.events.itemClick).
                 custom: { isGroupHeader: true, groupId: g.id },
             });
 
             // Member column series — real data, stack into this group's tower.
-            MEMBERS.forEach(function (m) {
+            MEMBERS.forEach(function (m, mi) {
                 defs.push({
                     id: `${m.key}_${g.id}`,
                     name: m.key,
@@ -348,6 +369,7 @@
                     showInLegend: g.id === FIRST_GROUP,
                     borderWidth: 0.5,
                     borderColor: "#fff",
+                    legendIndex: LEGEND_ORDER.memberStart + mi,
                     // Toggling this member toggles the same member across all
                     // three stacks at once — handled centrally in
                     // legend.events.itemClick (keyed off sharedLegendKey).
@@ -371,6 +393,7 @@
             stack: "rev",
             yAxis: 0,
             showInLegend: true,
+            legendIndex: LEGEND_ORDER.revenue,
             custom: { isBar: true, barColor: REVENUE.color },
         });
 
@@ -385,12 +408,13 @@
             marker: { enabled: false },
             showInLegend: true,
             enableMouseTracking: false,
+            legendIndex: LEGEND_ORDER.divider,
             // Presentation only — never toggles (see legend.events.itemClick).
             custom: { isDivider: true },
         });
 
         // ── Lines & area ──
-        [RUN_RATE, TREND].forEach(function (l) {
+        [RUN_RATE, TREND].forEach(function (l, li) {
             defs.push({
                 id: l.id,
                 name: l.name,
@@ -403,6 +427,7 @@
                 zIndex: 6,
                 states: { hover: { lineWidthPlus: 0 } },
                 showInLegend: true,
+                legendIndex: LEGEND_ORDER.lineStart + li,
                 custom: { isLine: true, lineColor: l.color },
             });
         });
@@ -418,6 +443,7 @@
             marker: { enabled: false },
             zIndex: 4,
             showInLegend: true,
+            legendIndex: LEGEND_ORDER.area,
             custom: { isArea: true, areaColor: VOLUME.color },
         });
 
@@ -441,6 +467,7 @@
                 marker: { enabled: false },
                 enableMouseTracking: false,
                 showInLegend: true,
+                legendIndex: LEGEND_ORDER.dummyStart + d,
                 custom: {
                     isDummy: true,
                     dummyColor: palette[d % palette.length],

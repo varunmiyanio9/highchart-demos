@@ -383,8 +383,7 @@ var CHART_REGISTRY = [
             "Nested submenu positioning — pure CSS/HTML nested <ul> with :hover display toggle.",
             "Type switching per-series — calls series.update({type}) on targeted series only.",
         ],
-        nativeNotes:
-            "chart.hoverSeries, series.setState(), series.update().",
+        nativeNotes: "chart.hoverSeries, series.setState(), series.update().",
     },
 
     // ─── Final Version (everything combined) ───
@@ -396,6 +395,7 @@ var CHART_REGISTRY = [
         customNotes: [
             "All-in-one: standalone bar + 3 stacked-bar groups (Product-1/2/3) + lines + area in a single chart with dual y-axes (combination idea from MTC-1).",
             "Combined grouped legend (from MHC-1) — the three product stacks share ONE legend presentation: one header lists all three products, one member row toggles/highlights that member across all three stacks. Extra dummy KPI items demonstrate pagination.",
+            "Legend display order (native series.legendIndex) — decoupled from the plotted stacking/cluster order: the standalone 'other' series come first (Revenue, Run Rate, Trend, Volume), then the blank divider, then the combined product-group block (header + members). Dummy KPI items stay last so they overflow into pagination rather than pushing real items off the visible rows.",
             "Category selection (from CMB-1) — mouse (label click / background click / drag) + keyboard (Tab→Arrow→Space, Shift+Arrow range, Escape clear), with a font size / font weight toolbar.",
             "Context menu (from CTX-2, simplified) — right-click for a FLAT menu to change chart type (Line / Bar / Area / Stacked Bar). No nested submenus, no series-splitting. Targets the hovered series, or all series on empty space.",
             "Dynamic timeline — x-axis is a rolling 49-month window (two years before → two years after the browser's current month). Range bounds are fixed at load; the 'Current Month' input moves the forecast divider.",
@@ -404,7 +404,7 @@ var CHART_REGISTRY = [
             "Scroll-aware forecast edge indicators (new) — while scrolling, when the solid divider leaves the viewport a DASHED line pins to the edge it exited: left edge = 'future only' (divider scrolled off left), right edge = 'past only' (divider scrolled off right). Hidden the instant the real divider scrolls back into view. Same edge-line idea as FC-9, now dashed and driven by scroll position.",
         ],
         nativeNotes:
-            "Multiple series types, yAxis array, stack IDs + grouping, legend.useHTML + labelFormatter + maxHeight/navigation pagination, series.setState()/setVisible(), xAxis.plotBands, chart.zooming + events.selection, chart.renderer (forecast line), chart.update({chart:{width}}), accessibility keyboardNavigation.",
+            "Multiple series types, yAxis array, stack IDs + grouping, legend.useHTML + labelFormatter + maxHeight/navigation pagination, series.legendIndex (legend ordering), series.setState()/setVisible(), xAxis.plotBands, chart.zooming + events.selection, chart.renderer (forecast line), chart.update({chart:{width}}), accessibility keyboardNavigation.",
     },
 ];
 
