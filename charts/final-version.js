@@ -346,7 +346,7 @@
 
         if (custom.isDivider) {
             return '<span style="display:inline-block;width:1px;height:14px;background:#d4d4d8;' +
-                'vertical-align:middle;pointer-events:none;"></span>';
+                'vertical-align:middle;pointer-events:none;" tabindex="-1" aria-hidden="true"></span>';
         }
 
         // One header item visually represents all three product stacks.
@@ -811,7 +811,18 @@
         return false;
     }
 
+    // Fired by chart.events.click. NOTE: this also fires when the legend is
+    // activated by KEYBOARD — pressing Space/Enter on a focused legend a11y
+    // proxy <button> dispatches a native DOM click that bubbles to the chart
+    // container; Highcharts' onContainerClick then fires chart 'click' with axis
+    // coordinates taken from the legend item's on-screen x. Without the guard
+    // below that would select whatever category sits under the toggled legend
+    // item. A genuine plot/background click never originates from the legend, so
+    // bail when the click's target is inside the legend or its proxy group.
     function handleBackgroundClick(e) {
+        var t = e.target;
+        if (t && t.closest &&
+            t.closest('.highcharts-legend, .highcharts-a11y-proxy-group-legend')) return;
         if (!e.xAxis) { clearSelection(); return; }
         var xValue = Math.round(e.xAxis[0].value);
         if (xValue < 0 || xValue >= CATEGORIES.length) { clearSelection(); return; }
@@ -1133,6 +1144,69 @@
         });
     }
 
+    /* ── LEGEND KEYBOARD NAV — skip the blank divider slot ─────────────────
+       FEATURE : when arrow-keying through the legend (native a11y keyboard
+                 navigation, order:['series','legend']), do NOT stop on the
+                 zero-width divider legend item — there's nothing to toggle or
+                 read there, so focusing it is confusing.
+       WHY NOT aria-hidden / tabindex (the "standard HTML" way) : it can't reach
+                 the right element. Highcharts' accessibility module does NOT
+                 focus our legend HTML (the divider <span> from
+                 legendLabelFormatter). It builds a PARALLEL set of proxy
+                 <button> elements — one per legend item — and moves keyboard
+                 focus through those. So aria-hidden/tabindex on the span is a
+                 no-op for legend nav. And even hiding the proxy doesn't help:
+                 arrow nav walks chart.legend.allItems by ONE linear index and
+                 highlightLegendItem(ix) returns true for the divider just
+                 because the item EXISTS — so the keypress is consumed on the
+                 divider index (focus stalls) instead of skipping. This version
+                 has no native per-item "skip" option.
+       CUSTOM  : shadow chart.highlightLegendItem on THIS instance so a request
+                 to land on a skippable item hops to the next real item in the
+                 travel direction, and re-sync the legend component's internal
+                 index so the next arrow press continues from the right place.
+                 Instance-only shadow → other charts/pages are untouched, and a
+                 fresh chart (the Allow-Scroll rebuild) re-applies it on load.
+       SCOPE   : only the divider is skipped. The product-group header stays
+                 focusable — it's a legitimate first stop and screen readers
+                 announce the product names there. */
+
+    function isLegendKeyboardSkippable(item) {
+        var c = item && item.options && item.options.custom;
+        return !!(c && c.isDivider); // only the blank separator slot
+    }
+
+    function restrictLegendKeyboardNav() {
+        // Guard: a fresh chart instance has no own `highlightLegendItem` yet, so
+        // the first read resolves to the pristine prototype impl. The flag stops
+        // us from wrapping our own shadow on a re-call within the same instance.
+        if (!chart || chart._finLegendKbdPatched) return;
+        var original = chart.highlightLegendItem;
+        if (typeof original !== 'function') return; // older lib w/o legend a11y
+        chart._finLegendKbdPatched = true;
+
+        chart.highlightLegendItem = function (ix) {
+            var items = this.legend.allItems;
+            var comp = this.accessibility && this.accessibility.components &&
+                this.accessibility.components.legend;
+            // The arrow handler always requests (currentIx ± 1), so the sign of
+            // (ix - currentIx) tells us which way the user is travelling.
+            var curIx = comp ? comp.highlightedLegendItemIx : -1;
+            var dir = (ix - curIx) >= 0 ? 1 : -1;
+
+            var k = ix;
+            while (items[k] && isLegendKeyboardSkippable(items[k])) { k += dir; }
+            if (!items[k]) return false; // ran off the end → let wrap-around handle it
+
+            var res = original.call(this, k);
+            // If we hopped, the arrow handler will still do
+            // `highlightedLegendItemIx += dir` after we return — pre-subtract so
+            // it lands exactly on k. (No-op when k === ix, the common case.)
+            if (res && comp && k !== ix) comp.highlightedLegendItemIx = k - dir;
+            return res;
+        };
+    }
+
     /* ── CHART CONFIG ─────────────────────────────────────────────────────
        The native-flag hub. The options that ENABLE each custom feature live
        here — flip these to turn features off:
@@ -1180,6 +1254,7 @@
                         attachLabelHandlers();
                         applyLabelStyles();
                         bindLegendInteractions();   // hover highlight + group-name click toggle
+                        restrictLegendKeyboardNav(); // arrow-key nav hops over the divider slot
                         applyGroupHiddenStyles();   // paint any pre-hidden group names
                         bindScrollIndicator();
                         updateEdgeIndicators();
@@ -1342,7 +1417,12 @@
                 landmarkVerbosity: 'disabled',
                 screenReaderSection: { beforeChartFormat: '', afterChartFormat: '' },
                 series: { describeSingleSeries: false },
-                keyboardNavigation: { enabled: true, order: ['series'], seriesNavigation: { mode: 'normal' } },
+                // order: ['series', 'legend'] → after the chart/series tab stop,
+                // Tab moves focus to the FIRST legend item; arrow keys then cycle
+                // through every legend item (Highcharts auto-paginates as you go).
+                // Dropping 'legend' here (e.g. order:['series'] alone) is what
+                // disabled native legend keyboard nav before.
+                keyboardNavigation: { enabled: true, order: ['series', 'legend'], seriesNavigation: { mode: 'normal' } },
                 point: { valueDescriptionFormat: '{point.category}, {series.name}: {point.y}' }
             },
 
@@ -1358,6 +1438,11 @@
             chart.container.addEventListener('click', function (e) {
                 if (!chart) return;
                 var t = e.target;
+                // Ignore legend-originated clicks (incl. keyboard a11y proxy
+                // activation), same as handleBackgroundClick — a legend toggle
+                // must not clear the selection either.
+                if (t && t.closest &&
+                    t.closest('.highcharts-legend, .highcharts-a11y-proxy-group-legend')) return;
                 while (t && t !== chart.container) {
                     if (t.classList && t.classList.contains('highcharts-axis-labels')) return;
                     t = t.parentNode;
@@ -1376,7 +1461,19 @@
     window.initFinalVersionChart = function () {
         var wrapper = document.getElementById('final-version');
         wrapper.addEventListener('keydown', function (e) {
-            if (e.key === ' ' || e.key === 'Enter') isKeyboardInteraction = true;
+            if (e.key === ' ' || e.key === 'Enter') {
+                // Arm point-selection ONLY for series-point keyboard activation.
+                // The legend is keyboard-navigable now (order:['series','legend']),
+                // so Space/Enter also fires while a legend a11y proxy <button> is
+                // focused. handlePointClick won't fire for that, but arming here
+                // would leave the flag stuck true, so a LATER point click could
+                // select spuriously. Skip arming when the key is on a legend proxy.
+                // (The actual legend-toggle-selects-category bug is handled in
+                // handleBackgroundClick, where that click really lands.)
+                var onLegendProxy = e.target && e.target.closest &&
+                    e.target.closest('.highcharts-a11y-proxy-group-legend');
+                if (!onLegendProxy) isKeyboardInteraction = true;
+            }
             if (e.key === 'Escape') clearSelection();
         }, true);
 
