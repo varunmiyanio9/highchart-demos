@@ -29,6 +29,67 @@
 // Data is original to this demo (not copied from the other pages) and sized so
 // every feature has something meaningful to act on.
 // =============================================================================
+//
+// CUSTOM-vs-NATIVE QUICK REFERENCE  (so future readers can cherry-pick features)
+// -----------------------------------------------------------------------------
+// Each feature notes the NATIVE Highcharts options that power it and the CUSTOM
+// code layered on top. To DROP a feature: remove its custom code and reset the
+// listed native flags to their defaults. To REUSE one elsewhere: copy the named
+// function(s) plus the native flags listed.
+//
+//  • Combined grouped legend
+//      NATIVE : legend.useHTML:true + legend.labelFormatter; symbolWidth/
+//               symbolHeight/symbolPadding:0 (hide the native colour swatches).
+//      CUSTOM : legendLabelFormatter() renders the HTML rows. Every series
+//               carries a `custom.*` tag (isMember/isGroupHeader/isBar/…) so the
+//               formatter and click/hover handlers know each item's role.
+//
+//  • Member toggle — one legend click hides a member across ALL 3 stacks
+//      NATIVE : legend.events.itemClick (this is where HC's default toggle lives).
+//      CUSTOM : handleLegendItemClick() calls e.preventDefault() to suppress the
+//               native single-series toggle, then setVisible()s every series that
+//               shares `custom.sharedLegendKey`.
+//
+//  • Group-name toggle — click a product NAME to hide/show its whole stack
+//      NATIVE : none possible — all 3 names live inside ONE legend item, so HC
+//               can't tell which name was clicked.
+//      CUSTOM : DOM click on `.fin-group-item` → toggleGroup(); strike-through
+//               via applyGroupHiddenStyles() (re-applied on every redraw).
+//
+//  • Legend hover highlight (group / member / single series)
+//      NATIVE? : Highcharts DOES dim-others-on-legend-hover out of the box, but
+//               it's the SAME switch as plot-hover dimming
+//               (plotOptions.series.states.inactive). We keep that DISABLED
+//               (enabled:false) so PLOT hover stays clean — which means legend
+//               hover is hand-rolled here by deliberate choice, not oversight.
+//      CUSTOM : bindLegendInteractions() dims series SVG-group opacity while
+//               hovering ANY legend entry. Group/member rows match by custom tag;
+//               single series (Revenue/Run Rate/Trend/Volume) match by NAME via
+//               textContent — NOT a data-* attribute, because Highcharts' useHTML
+//               AST sanitizer strips unknown attributes (only id/class/style/… ).
+//
+//  • Category selection (drag / click / keyboard)
+//      NATIVE : chart.zooming.type:'x' (drag rubber-band → selection event) +
+//               accessibility keyboard navigation (Space/Enter fire point click).
+//      CUSTOM : x-axis plot bands for the highlight, tick-label click handlers,
+//               and the selectedCategories Set (see SELECTION section).
+//
+//  • Context menu — right-click to change chart type
+//      NATIVE : the exporting module is NOT loaded, so there is no native menu.
+//      CUSTOM : wireContextMenu() builds a flat DOM menu → series.update({type}).
+//
+//  • Forecast divider (vertical line at the current month)
+//      NATIVE : chart.renderer (raw SVG primitives) — NOT a plotLine, so we can
+//               control its zIndex.
+//      CUSTOM : drawForecastDivider() draws a path + callout at a LOW zIndex so
+//               it sits BEHIND the bars.
+//
+//  • Allow-scroll switch
+//      NATIVE : chart.scrollablePlotArea.minWidth (pins both y-axes, scrolls the
+//               plot + x-axis).
+//      CUSTOM : applyScroll() rebuilds the chart to flip it on/off, plus dashed
+//               edge indicators when the divider scrolls off-screen.
+// -----------------------------------------------------------------------------
 
 (function () {
     /* ── DATE RANGE (dynamic: one year before → one year after now) ──── */
@@ -118,7 +179,10 @@
     var TREND = { id: 'trend', name: 'Trend', color: '#1A1A2E', yAxis: 1, data: seriesFor(720, 1) };
     var VOLUME = { id: 'volume', name: 'Volume', color: '#9E6FC8', yAxis: 1, data: seriesFor(640, 1) };
 
-    var DUMMY_LEGEND_COUNT = 16; // extra legend rows to force pagination
+    var DUMMY_LEGEND_COUNT = 100; // extra legend items — enough to overflow 2 rows
+    //                               and force NATIVE Highcharts pagination (the
+    //                               legend only paginates when content exceeds the
+    //                               2-row maxHeight cap; see legend config).
     // Fixed chart width when "Allow Scroll" is on — scales with the bucket count
     // so the (now much wider) timeline has plenty of room to scroll.
     var SCROLL_WIDTH = Math.max(1600, CATEGORIES.length * 110);
@@ -154,7 +218,17 @@
 
     var STACKED_ICON = '<i class="fa-solid fa-chart-column"></i>';
 
-    /* ── SERIES BUILDER ───────────────────────────────────────────────── */
+    /* ── SERIES BUILDER ───────────────────────────────────────────────────
+       Builds every series def. The KEY CUSTOM CONVENTION used throughout this
+       file: each series carries a `custom: {…}` bag tagging its ROLE
+       (isMember / isGroupHeader / isBar / isLine / isArea / isDivider / isDummy)
+       plus any data the handlers need (sharedLegendKey, groupId, colours). This
+       is a native Highcharts passthrough (options.custom) — Highcharts ignores
+       it, but our legendLabelFormatter, click/hover handlers and context menu
+       all branch on these tags instead of fragile name/index matching.
+       Two presentation-only tricks: group-header series use data:[] +
+       color:'transparent' purely to own a legend slot; the divider series is an
+       empty line whose only job is a visual separator legend entry. */
 
     function buildSeries() {
         var defs = [];
@@ -174,11 +248,9 @@
                 borderWidth: 0,
                 showInLegend: g.id === FIRST_GROUP,
                 enableMouseTracking: false,
-                custom: { isGroupHeader: true, groupId: g.id },
-                events: {
-                    // Group header is presentation only — clicking it does nothing.
-                    legendItemClick: function () { return false; }
-                }
+                // Group header is presentation only — the legend's itemClick
+                // handler preventDefaults clicks on it (see legend.events.itemClick).
+                custom: { isGroupHeader: true, groupId: g.id }
             });
 
             // Member column series — real data, stack into this group's tower.
@@ -195,25 +267,14 @@
                     showInLegend: g.id === FIRST_GROUP,
                     borderWidth: 0.5,
                     borderColor: '#fff',
+                    // Toggling this member toggles the same member across all
+                    // three stacks at once — handled centrally in
+                    // legend.events.itemClick (keyed off sharedLegendKey).
                     custom: {
                         isMember: true,
                         groupId: g.id,
                         sharedLegendKey: m.key,
                         memberColor: m.color
-                    },
-                    events: {
-                        // Toggle this member across ALL three stacks at once.
-                        legendItemClick: function (e) {
-                            e.preventDefault();
-                            var key = this.options.custom.sharedLegendKey;
-                            var related = this.chart.series.filter(function (s) {
-                                return s.options.custom && s.options.custom.sharedLegendKey === key;
-                            });
-                            var allHidden = related.every(function (s) { return !s.visible; });
-                            related.forEach(function (s) { s.setVisible(allHidden, false); });
-                            this.chart.redraw();
-                            return false;
-                        }
                     }
                 });
             });
@@ -232,8 +293,8 @@
             id: 'fin-divider', name: '​', type: 'line', data: [],
             color: 'transparent', lineWidth: 0, marker: { enabled: false },
             showInLegend: true, enableMouseTracking: false,
-            custom: { isDivider: true },
-            events: { legendItemClick: function () { return false; } }
+            // Presentation only — never toggles (see legend.events.itemClick).
+            custom: { isDivider: true }
         });
 
         // ── Lines & area ──
@@ -270,7 +331,15 @@
         return defs;
     }
 
-    /* ── LEGEND LABEL FORMATTER (combined grouped presentation) ───────── */
+    /* ── LEGEND LABEL FORMATTER (combined grouped presentation) ───────────
+       FEATURE : the whole custom legend look — grouped product header, coloured
+                 member chips, line/area swatches, a thin divider, greyed dummies.
+       NATIVE  : legend.useHTML:true lets us return HTML per item; we also set
+                 legend.symbolWidth/symbolHeight/symbolPadding:0 to REMOVE the
+                 native colour symbol (we draw our own swatch inside the HTML).
+       CUSTOM  : this formatter returns a different HTML fragment per `custom.*`
+                 role tag. The group-header fragment emits three `.fin-group-item`
+                 elements (id = group id) that the hover/click handlers target. */
 
     function legendLabelFormatter() {
         var custom = (this.options && this.options.custom) || {};
@@ -294,22 +363,29 @@
                 '</div>';
         }
 
+        // Single real series (bar / line / area). The `fin-series-item` class lets
+        // bindLegendInteractions hover-highlight just this one series (dim the
+        // rest) — the same effect the group/member rows get. We match it back to
+        // its series by NAME (the text content), NOT a data-* attribute: Highcharts'
+        // useHTML AST sanitizer strips unknown attributes (only id/class/style/…
+        // survive), so data-series-id would never reach the DOM. The visible name
+        // is unique per series here, so textContent → series.name is reliable.
         if (custom.isLine) {
-            return '<div style="display:flex;align-items:center;gap:5px;">' +
+            return '<div class="fin-series-item" style="display:flex;align-items:center;gap:5px;">' +
                 '<span style="display:inline-block;width:20px;height:3px;background:' +
                 custom.lineColor + ';border-radius:1px;flex-shrink:0;"></span>' +
                 '<span style="font-size:11.5px;">' + this.name + '</span></div>';
         }
 
         if (custom.isArea) {
-            return '<div style="display:flex;align-items:center;gap:5px;">' +
+            return '<div class="fin-series-item" style="display:flex;align-items:center;gap:5px;">' +
                 '<span style="display:inline-block;width:14px;height:11px;background:' +
                 custom.areaColor + ';opacity:0.55;border-radius:1px;flex-shrink:0;"></span>' +
                 '<span style="font-size:11.5px;">' + this.name + '</span></div>';
         }
 
         if (custom.isBar) {
-            return '<div style="display:flex;align-items:center;gap:4px;">' + STACKED_ICON +
+            return '<div class="fin-series-item" style="display:flex;align-items:center;gap:4px;">' + STACKED_ICON +
                 '<b style="font-weight:700;color:#16191d;font-size:11.5px;">' + this.name + '</b></div>';
         }
 
@@ -331,7 +407,106 @@
         return this.name;
     }
 
-    /* ── FORECAST DIVIDER (renderer line drawn BEHIND the bars) ───────── */
+    /* ── LEGEND CLICK — MEMBER TOGGLE (native item click) ─────────────────
+       FEATURE : clicking ONE member row hides/shows that member in all 3 stacks.
+       NATIVE  : legend.events.itemClick — this is where Highcharts attaches its
+                 DEFAULT single-series visibility toggle (the `i` default fn it
+                 fires here). NOTE: series.events.legendItemClick is fired too,
+                 but AFTER, with NO default fn — so preventDefault there is a
+                 no-op and CANNOT stop the toggle. That was the original bug:
+                 hide worked, show-again didn't, because the native toggle flipped
+                 the clicked series first and desynced the three stacks.
+       CUSTOM  : preventDefault() here (where it DOES gate the native toggle),
+                 then setVisible() every series sharing custom.sharedLegendKey.
+       TOGGLE RULE (shared with toggleGroup): if EVERYTHING this entry controls
+                 is already hidden → show it all; otherwise → hide it all. This
+                 matches the legend item's greyed/active look (active ⇒ next click
+                 hides). Presentation-only entries (group header, divider) are
+                 simply preventDefault'd so they never toggle anything. */
+
+    function handleLegendItemClick(e) {
+        var series = e.legendItem;
+        var custom = (series && series.options && series.options.custom) || {};
+
+        // Presentation-only entries (group header, divider) never toggle.
+        if (custom.isGroupHeader || custom.isDivider) {
+            e.preventDefault();
+            return;
+        }
+
+        // Combined member: toggle this member across ALL three stacks together.
+        if (custom.isMember) {
+            e.preventDefault();
+            var key = custom.sharedLegendKey;
+            var related = chart.series.filter(function (s) {
+                return s.options.custom && s.options.custom.sharedLegendKey === key;
+            });
+            var makeVisible = related.every(function (s) { return !s.visible; });
+            related.forEach(function (s) { s.setVisible(makeVisible, false); });
+            chart.redraw();
+            return;
+        }
+
+        // Real bar / line / area / dummy items: let the native toggle run.
+    }
+
+    /* ── LEGEND CLICK — GROUP-NAME TOGGLE (custom, DOM-driven) ─────────────
+       FEATURE : clicking a product NAME (Product-1/2/3) in the combined header
+                 hides/shows that product's ENTIRE stack, and strikes the name.
+       WHY CUSTOM (no native path) : all three names render inside ONE legend
+                 item (the FIRST_GROUP header series). Highcharts' itemClick only
+                 knows that single item — it cannot tell which of the three names
+                 was clicked. So the click is caught on the DOM instead
+                 (bindLegendInteractions → toggleGroup), the same `.fin-group-item`
+                 elements the hover-highlight already uses.
+       The two functions below are deliberately isolated so this feature can be
+       lifted out wholesale: bindLegendInteractions wires the click,
+       toggleGroup() flips visibility, applyGroupHiddenStyles() paints the state.
+
+       toggleGroup — hide/show every member series in one product stack.
+       Uses the SAME toggle rule as the member toggle above. */
+    function toggleGroup(groupId) {
+        if (!chart) return;
+        var members = chart.series.filter(function (s) {
+            var c = s.options.custom;
+            return c && c.isMember && c.groupId === groupId;
+        });
+        if (!members.length) return;
+        // If the whole group is already hidden → show it; otherwise hide it all.
+        var makeVisible = members.every(function (s) { return !s.visible; });
+        members.forEach(function (s) { s.setVisible(makeVisible, false); });
+        chart.redraw(); // the redraw handler calls applyGroupHiddenStyles()
+    }
+
+    // Sync the struck-through `.fin-group-hidden` class to the live visibility of
+    // each group. Highcharts does NOT grey these names natively (they belong to a
+    // header series we never toggle), so we paint the state by hand. Re-run on
+    // every redraw because useHTML legend labels may be re-rendered fresh.
+    function applyGroupHiddenStyles() {
+        if (!chart) return;
+        GROUPS.forEach(function (g) {
+            var members = chart.series.filter(function (s) {
+                var c = s.options.custom;
+                return c && c.isMember && c.groupId === g.id;
+            });
+            var hidden = members.length > 0 &&
+                members.every(function (s) { return !s.visible; });
+            var el = chart.container.querySelector('.fin-group-item[id="' + g.id + '"]');
+            if (el) el.classList.toggle('fin-group-hidden', hidden);
+        });
+    }
+
+    /* ── FORECAST DIVIDER (renderer line drawn BEHIND the bars) ───────────
+       FEATURE : a vertical marker at the current month + hover callout naming
+                 the forecast start.
+       NATIVE  : chart.renderer — raw SVG primitives (path + label). We do NOT
+                 use xAxis.plotLines here ON PURPOSE: a plotLine can't be pushed
+                 below the column series, but a renderer path can via zIndex.
+       CUSTOM  : drawForecastDivider() draws/repositions the path at zIndex 2
+                 (below the series group at 3, above gridlines at 1) so it reads
+                 as sitting BEHIND the bars; hover swaps stroke width + callout.
+                 The elements are module-level (fcLine/fcTip) so we reposition
+                 instead of recreating on every redraw. */
 
     function forecastX() {
         // On the current month's tick (category center), not between two months.
@@ -500,7 +675,18 @@
         }
     }
 
-    /* ── SELECTION (mouse + keyboard, single chart) ───────────────────── */
+    /* ── SELECTION (mouse + keyboard, single chart) ───────────────────────
+       FEATURE : select month categories by clicking an x-axis label, click-drag
+                 across the plot, shift-hover a range, or keyboard (Space/Enter on
+                 a point, Escape to clear). Selected months feed the detail panel.
+       NATIVE  : chart.zooming.type:'x' turns drag into a `selection` event
+                 (handleDragSelect); accessibility keyboardNavigation makes
+                 Space/Enter fire a point `click` (handlePointClick); chart-level
+                 `click` gives us background clicks (handleBackgroundClick).
+       CUSTOM  : the selectedCategories Set is the source of truth; x-axis
+                 plotBands draw the highlight; an SVG <filter> (#fin-label-bg)
+                 tints the selected tick labels; tick-label handlers are
+                 (re)attached after redraws with a dedupe guard (_finBound). */
 
     function ensureFilter() {
         var svg = chart.container.querySelector('svg');
@@ -632,7 +818,10 @@
         selectCategory(xValue, e.ctrlKey || e.metaKey);
     }
 
-    /* ── DETAIL PANEL ─────────────────────────────────────────────────── */
+    /* ── DETAIL PANEL ─────────────────────────────────────────────────────
+       Pure custom DOM (no Highcharts involvement): renders a table of the
+       selected months into #fin-content, sourced from the precomputed data and
+       the selectedCategories Set. Nothing here to toggle on the chart side. */
 
     function updateDetailPanel() {
         var content = document.getElementById('fin-content');
@@ -665,7 +854,12 @@
         content.innerHTML = html;
     }
 
-    /* ── TOOLBAR (font size, font weight, allow-scroll switch) ────────── */
+    /* ── TOOLBAR (font size, font weight, allow-scroll switch) ────────────
+       Custom DOM controls in #fin-toolbar. Their effects reach the chart through
+       NATIVE APIs: font controls → xAxis/yAxis.update({labels.style}); current
+       month → moves the forecast divider; allow-scroll → flips
+       chart.scrollablePlotArea (via applyScroll rebuild). The toolbar itself is
+       all custom; the chart-side effects are all native option updates. */
 
     function buildToolbar() {
         var toolbar = document.getElementById('fin-toolbar');
@@ -743,7 +937,18 @@
         syncSelection();
     }
 
-    /* ── CONTEXT MENU (flat: Line / Bar / Area / Stacked Bar) ─────────── */
+    /* ── CONTEXT MENU (flat: Line / Bar / Area / Stacked Bar) ─────────────
+       FEATURE : right-click the chart → flat menu → change chart type. Right-
+                 clicking ON a series targets just it; right-clicking elsewhere
+                 targets all real series.
+       NATIVE  : NONE — the exporting module is intentionally NOT loaded, so
+                 Highcharts has no built-in right-click menu to compete with.
+                 The type change itself uses native series.update({type,stacking}).
+       CUSTOM  : wireContextMenu() owns a DOM menu (#fin-ctx-menu), a contextmenu
+                 listener that preventDefaults the browser menu, and a hover/
+                 inactive "lock" (via Series.prototype.setState) to spotlight the
+                 targeted series while the menu is open. isRealSeries() filters out
+                 the presentation-only series (divider/header/dummy). */
 
     function isRealSeries(s) {
         var c = s.options.custom || {};
@@ -829,21 +1034,38 @@
         }
     }
 
-    /* ── LEGEND HOVER (grouped highlight, DOM-driven) ─────────────────── */
-    //
-    // Plot hover is left 100% to Highcharts (states.inactive) so hovering a bar
-    // or line focuses exactly that one series. The ONLY custom highlight is for
-    // the combined legend, driven off the legend DOM — never by overriding
-    // setState, which previously hijacked plot hover and greyed everything out:
-    //   • hover a product NAME in the group header → highlight that whole stack
-    //   • hover a MEMBER item                       → highlight that member in all 3 stacks
+    /* ── LEGEND INTERACTIONS — DOM-driven (hover highlight + group click) ──
+       FEATURE : (a) hovering ANY legend entry highlights its series and dims the
+                 rest — a group NAME → that whole stack, a MEMBER row → that
+                 member across all 3 stacks, a single series (Revenue / Run Rate /
+                 Trend / Volume) → just that series; (b) clicking a product NAME
+                 toggles that whole stack.
+       NATIVE  : plotOptions.series.states.inactive.enabled:false — we DISABLE the
+                 built-in hover-dimming so that PLOT hover never greys the chart;
+                 highlighting is driven ONLY from the legend, by hand.
+       CUSTOM  : one delegated mouseover/mouseout/click listener on the chart
+                 container (which survives chart rebuilds), acting on the
+                 `.fin-group-item` / `.fin-member-item` / `.fin-series-item`
+                 elements emitted by legendLabelFormatter().
+       WHY DOM (not Highcharts events) : the combined header packs all three
+                 product names into ONE legend item, so Highcharts' own
+                 hover/click events can't address an individual name — the DOM can.
+                 We route the single-series hover through the same path for one
+                 consistent highlight mechanism across every legend shape.
+       MATCHING: group → custom.groupId (via element id), member → sharedLegendKey
+                 (via textContent), single series → series.name (via textContent).
+                 We match members & single series by their VISIBLE TEXT, not a
+                 data-* attribute, because useHTML strips unknown attributes.
+       NOTE: member CLICK toggling is handled natively in handleLegendItemClick
+                 (one member row == one legend item); only the GROUP-name click
+                 needs this DOM path. */
 
-    function bindLegendHover() {
+    function bindLegendInteractions() {
         // Flag lives on the container DOM (which survives chart rebuilds) so the
-        // listeners are attached once even though bindLegendHover runs on every
-        // chart load. The handlers read the module `chart`, so they stay current.
-        if (chart.container._finLegendHoverBound) return;
-        chart.container._finLegendHoverBound = true;
+        // listeners are attached once even though this runs on every chart load.
+        // The handlers read the module `chart`, so they stay current.
+        if (chart.container._finLegendBound) return;
+        chart.container._finLegendBound = true;
 
         // Dim/restore by setting the series' SVG group opacity directly (the
         // native inactive state is disabled so plot hover stays clean). This is
@@ -854,11 +1076,13 @@
                 if (s[g]) s[g].attr({ opacity: v });
             });
         }
+        // `match` receives (series, custom) so callers can key off either the
+        // custom role tags (group/member) or the series itself (single series).
         function highlight(match) {
             chart.series.forEach(function (s) {
                 var c = s.options.custom || {};
                 if (c.isDivider || c.isGroupHeader || c.isDummy) return;
-                setOpacity(s, match(c) ? 1 : DIM);
+                setOpacity(s, match(s, c) ? 1 : DIM);
             });
         }
         function clearAll() {
@@ -869,25 +1093,59 @@
             });
         }
 
+        // ── Hover highlight ──
+        // Three legend shapes can be hovered: a group NAME (highlight that whole
+        // stack), a MEMBER row (that member across all 3 stacks), or a single
+        // real series — Revenue / Run Rate / Trend / Volume — (just that series).
         chart.container.addEventListener('mouseover', function (e) {
             var grp = e.target.closest('.fin-group-item');
             if (grp) {
                 var gid = grp.getAttribute('id');
-                highlight(function (c) { return c.groupId === gid; });
+                highlight(function (s, c) { return c.groupId === gid; });
                 return;
             }
             var mem = e.target.closest('.fin-member-item');
             if (mem) {
                 var key = (mem.getAttribute('data-key') || mem.textContent || '').trim();
-                highlight(function (c) { return c.sharedLegendKey === key; });
+                highlight(function (s, c) { return c.sharedLegendKey === key; });
+                return;
+            }
+            var ser = e.target.closest('.fin-series-item');
+            if (ser) {
+                // Match by visible name (textContent) — see the formatter note:
+                // useHTML strips data-* attributes, so we can't tag the id.
+                var name = (ser.textContent || '').trim();
+                highlight(function (s) { return s.name === name; });
             }
         });
         chart.container.addEventListener('mouseout', function (e) {
-            if (e.target.closest('.fin-group-item') || e.target.closest('.fin-member-item')) clearAll();
+            if (e.target.closest('.fin-group-item') ||
+                e.target.closest('.fin-member-item') ||
+                e.target.closest('.fin-series-item')) clearAll();
+        });
+
+        // ── Group-name click toggle ──
+        // (handleLegendItemClick already preventDefault'd the native item toggle
+        // for the header series, so this is the ONLY effect of the click.)
+        chart.container.addEventListener('click', function (e) {
+            var grp = e.target.closest('.fin-group-item');
+            if (grp) toggleGroup(grp.getAttribute('id'));
         });
     }
 
-    /* ── CHART CONFIG ─────────────────────────────────────────────────── */
+    /* ── CHART CONFIG ─────────────────────────────────────────────────────
+       The native-flag hub. The options that ENABLE each custom feature live
+       here — flip these to turn features off:
+         • legend.useHTML + symbolWidth/Height/Padding:0  → custom HTML legend
+         • legend.events.itemClick                        → member toggle hook
+         • plotOptions.series.states.inactive.enabled:false → custom-only hover
+         • chart.zooming.type:'x' + chart.events.selection → drag selection
+         • chart.events.click                             → background-click select
+         • chart.scrollablePlotArea (set in applyScroll)  → allow-scroll
+         • accessibility.keyboardNavigation               → keyboard selection
+         • plotOptions.column.stacking:'normal'           → the stacked towers
+       chart.events.load/redraw re-run our renderer/label/legend painters that
+       Highcharts can't know about. */
 
     function createChart() {
         chart = Highcharts.chart('fin-chart', {
@@ -899,7 +1157,11 @@
                 // scrolls only the plot + x-axis.
                 width: null,
                 backgroundColor: '#ffffff',
-                marginBottom: 130,
+                // NO fixed marginBottom — let Highcharts auto-size the bottom
+                // margin (default behaviour, same as MHC-1). A hardcoded
+                // marginBottom makes HC stop reserving room for the bottom legend,
+                // so the (now 2-row + pager) legend overlaps the x-axis labels.
+                // Auto = axis-labels height + legend height + spacing → clean gap.
                 style: { fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" },
                 zooming: { type: 'x' },
                 plotBackgroundColor: 'rgba(0,0,0,0)',
@@ -917,7 +1179,8 @@
                         drawForecastDivider();
                         attachLabelHandlers();
                         applyLabelStyles();
-                        bindLegendHover();
+                        bindLegendInteractions();   // hover highlight + group-name click toggle
+                        applyGroupHiddenStyles();   // paint any pre-hidden group names
                         bindScrollIndicator();
                         updateEdgeIndicators();
                         // .highcharts-scrolling is created just after load, so set
@@ -928,6 +1191,10 @@
                     redraw: function () {
                         chart = this;
                         drawForecastDivider();
+                        // Re-apply the group-name strike-through: useHTML legend
+                        // labels may be re-rendered fresh on redraw, dropping the
+                        // class — so we re-sync it to live series visibility here.
+                        applyGroupHiddenStyles();
                         bindScrollIndicator();
                         updateEdgeIndicators();
                         setTimeout(function () {
@@ -989,7 +1256,17 @@
                 align: 'left',
                 verticalAlign: 'bottom',
                 alignColumns: false,
-                maxHeight: 88,
+                // NATIVE pagination — fully Highcharts, no custom code:
+                //   maxHeight caps the legend box. Highcharts only paginates when
+                //   the legend's NATURAL height exceeds this cap; once it does, it
+                //   clips to the rows that fit and renders its own pager arrows
+                //   (legend.navigation below). The cap + row metrics here are copied
+                //   from MHC-1 so the cutoff lands on 2 visible rows, then "1/N".
+                //   IMPORTANT: this only kicks in when there are ENOUGH items to
+                //   overflow 2 rows. On a wide chart a handful of items fit in 2-3
+                //   rows UNDER the cap, so no pager shows — that's expected, not a
+                //   bug. The 100 dummy KPI items below guarantee the overflow.
+                maxHeight: 100,
                 navigation: {
                     activeColor: '#2563eb',
                     inactiveColor: '#ccc',
@@ -997,10 +1274,11 @@
                     animation: true,
                     style: { fontWeight: 'bold', color: '#333', fontSize: '12px' }
                 },
+                // Row metrics matched to MHC-1 so maxHeight:100 lands on 2 rows.
                 padding: 8,
-                itemMarginTop: 4,
-                itemMarginBottom: 4,
-                itemDistance: 14,
+                itemMarginTop: 5,
+                itemMarginBottom: 5,
+                itemDistance: 15,
                 symbolWidth: 0,
                 symbolHeight: 0,
                 symbolPadding: 0,
@@ -1008,7 +1286,8 @@
                     fontWeight: 'normal', fontSize: '12px', color: '#16191d', cursor: 'pointer',
                     textOverflow: 'none', whiteSpace: 'nowrap'
                 },
-                labelFormatter: legendLabelFormatter
+                labelFormatter: legendLabelFormatter,
+                events: { itemClick: handleLegendItemClick }
             },
 
             tooltip: {
@@ -1039,9 +1318,11 @@
                 series: {
                     allowPointSelect: false,
                     states: {
-                        // Mouse hover over the plot must NOT dim/focus anything —
-                        // it made the chart hard to read. Highlighting is driven
-                        // ONLY by legend hover (bindLegendHover, via group opacity).
+                        // NATIVE FLAG (custom behaviour): inactive.enabled:false
+                        // disables Highcharts' built-in "dim other series on hover"
+                        // so PLOT hover never greys the chart. Highlighting is then
+                        // driven ONLY by LEGEND hover (bindLegendInteractions, via
+                        // SVG group opacity). hover.halo.size:0 kills the point halo.
                         inactive: { enabled: false },
                         hover: { halo: { size: 0 } }
                     },

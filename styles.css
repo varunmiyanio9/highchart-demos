@@ -559,6 +559,23 @@ body {
     right: 6px;
 }
 
+/* Combined-legend group-name interactions (FIN-1):
+   The three product names (Product-1/2/3) live inside ONE legend item and are
+   driven by custom DOM handlers (Highcharts' native legend toggle only knows
+   the whole item, not which name was clicked). `.fin-group-hidden` is applied
+   by applyGroupHiddenStyles() when every member series in that group is hidden;
+   it strikes and dims the clicked name so the toggle state is visible — the
+   equivalent of Highcharts' native greyed-out legend item, done by hand. */
+.fin-group-item {
+    cursor: pointer;
+}
+.fin-group-item.fin-group-hidden {
+    opacity: 0.4;
+}
+.fin-group-item.fin-group-hidden b {
+    text-decoration: line-through;
+}
+
 /* Context menu header label (the flat menu's title row) */
 .ctx-menu-header {
     padding: 6px 14px 8px;
