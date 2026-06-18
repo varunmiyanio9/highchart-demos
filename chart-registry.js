@@ -71,6 +71,11 @@ var PAGE_META = {
         description:
             "Finalized chart — combined types, grouped legend, selection, context menu, forecast, scroll toggle",
     },
+    "final-version-hbc": {
+        name: "Final Version HBC",
+        description:
+            "Horizontal bar charts — vertical scroll, font controls, selection, and a single point-label toggle (simple + stacked)",
+    },
 };
 
 /* ── CHART REGISTRY (one entry per rendered chart instance) ────────── */
@@ -402,9 +407,40 @@ var CHART_REGISTRY = [
             "Forecast divider (from FC-8, changed) — renderer-drawn SOLID vertical line with hover tooltip sitting ON the current month's tick, drawn BEHIND the bars (zIndex 2, below the column series group) instead of on top.",
             "Allow-Scroll switch — ON pins the chart container to a fixed wide width (scales with the bucket count) so the wrapper scrolls horizontally; OFF clears the width so all 25 months shrink to fit the visible area.",
             "Scroll-aware forecast edge indicators (new) — while scrolling, when the solid divider leaves the viewport a DASHED line pins to the edge it exited: left edge = 'future only' (divider scrolled off left), right edge = 'past only' (divider scrolled off right). Hidden the instant the real divider scrolls back into view. Same edge-line idea as FC-9, now dashed and driven by scroll position.",
+            "Point-label toggles ('Enable Point Label: Line / Bar / Stack Bar') — pure NATIVE Highcharts, no custom label code. Each checkbox flips series.dataLabels.enabled on the matching series type. The Stack Bar box ALSO turns on yAxis.stackLabels, which is the built-in stack TOTAL drawn on TOP of each tower (Highcharts sums the stack itself) — values inside the segments + total on top are both out-of-the-box. Only the toggle plumbing is custom.",
         ],
         nativeNotes:
-            "Multiple series types, yAxis array, stack IDs + grouping, legend.useHTML + labelFormatter + maxHeight/navigation pagination, series.legendIndex (legend ordering), series.setState()/setVisible(), xAxis.plotBands, chart.zooming + events.selection, chart.renderer (forecast line), chart.update({chart:{width}}), accessibility keyboardNavigation.",
+            "Multiple series types, yAxis array, stack IDs + grouping, legend.useHTML + labelFormatter + maxHeight/navigation pagination, series.legendIndex (legend ordering), series.setState()/setVisible(), series.dataLabels + yAxis.stackLabels (native point labels + stack totals), xAxis.plotBands, chart.zooming + events.selection, chart.renderer (forecast line), chart.update({chart:{width}}), accessibility keyboardNavigation.",
+    },
+
+    // ─── Final Version HBC (horizontal bar — simple + stacked) ───
+    {
+        chartId: "HBC-1",
+        pageId: "final-version-hbc",
+        containerId: "hbc-simple-chart",
+        title: "Simple Horizontal Bar — Products",
+        customNotes: [
+            "Vertical Allow-Scroll — a bar chart is inverted, so the CUSTOM toggle rebuilds the chart with chart.scrollablePlotArea.minHeight: the horizontal VALUE axis stays sticky while the vertical CATEGORY axis scrolls. 24 products give it room to scroll.",
+            "Font size / font weight toolbar — only the control plumbing is custom; the effect is native xAxis/yAxis.labels.style updates.",
+            "Category selection (from CMB-1) — mouse (label click / background click / drag) + keyboard (Tab → Arrow → Space/Enter, Shift+hover range, Escape clear). selectedCategories Set + xAxis.plotBands highlight.",
+            "Enable Point Label — ONE shared checkbox flips native series.dataLabels.enabled on this chart and the stacked one.",
+            "Everything else is stock Highcharts: default legend, default tooltip, no forecast/context-menu.",
+        ],
+        nativeNotes:
+            "type:'bar' (inverted), chart.scrollablePlotArea.minHeight (vertical scroll, value axis pinned), xAxis.plotBands, chart.zooming.type:'x' + events.selection, accessibility keyboardNavigation, series.dataLabels, x/yAxis.labels.style.",
+    },
+    {
+        chartId: "HBC-2",
+        pageId: "final-version-hbc",
+        containerId: "hbc-stacked-chart",
+        title: "Stacked Horizontal Bar — Product Groups",
+        customNotes: [
+            "Independent stacked horizontal bar — 20 product groups (categories), each a stack of 4 product items (Product A–D). Not mixed with HBC-1.",
+            "Shares the same toolbar + selection logic as HBC-1 (its own selectedCategories Set).",
+            "Enable Point Label — the shared checkbox flips series.dataLabels.enabled on each segment AND yAxis.stackLabels.enabled (the native stack total on top of each tower).",
+        ],
+        nativeNotes:
+            "type:'bar' (inverted) + stacking:'normal', chart.scrollablePlotArea.minHeight, series.dataLabels + yAxis.stackLabels, xAxis.plotBands, chart.zooming + events.selection, accessibility keyboardNavigation.",
     },
 ];
 

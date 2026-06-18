@@ -1,38 +1,88 @@
 // Sidebar pages — derived from PAGE_META (defined in chart-registry.js)
 var CHARTS = Object.keys(PAGE_META).map(function (id) {
-    return { id: id, name: PAGE_META[id].name, description: PAGE_META[id].description };
+    return {
+        id: id,
+        name: PAGE_META[id].name,
+        description: PAGE_META[id].description,
+    };
 });
 
 var CHART_INIT = {
-    'axis-selection': function () { if (!window.selectionChart) initAxisSelectionChart(); },
-    'bucket-selection': function () { if (!window.bucketChart) initBucketSelectionChart(); },
-    'tick-selection': function () { if (!window.tickChart) initTickSelectionChart(); },
-    'label-click': function () { if (!window.labelChart) initLabelClickChart(); },
-    'combined-selection': function () { if (!window.combinedChart) initCombinedSelectionChart(); },
-    'forecast': function () { if (!window.forecastCharts) initForecastCharts(); },
-    'stack-bar-legends-default': function () { if (!window.sblDefaultChart) { window.sblDefaultChart = true; initStackBarLegendsDefaultChart(); } },
-    'stack-bar-legends-min-custom': function () { if (!window.mslHCChart) { window.mslHCChart = true; initMemberStackedLegendHCChart(); } },
-    'stack-bar-legends-full-custom': function () { if (!window.mslChart) { window.mslChart = true; initMemberStackedLegendChart(); } },
-    'context-menu': function () { if (!window.ctxMenuInit) { window.ctxMenuInit = true; initContextMenuCharts(); } },
-    'final-version': function () { if (!window.finalChart) initFinalVersionChart(); }
+    "axis-selection": function () {
+        if (!window.selectionChart) initAxisSelectionChart();
+    },
+    "bucket-selection": function () {
+        if (!window.bucketChart) initBucketSelectionChart();
+    },
+    "tick-selection": function () {
+        if (!window.tickChart) initTickSelectionChart();
+    },
+    "label-click": function () {
+        if (!window.labelChart) initLabelClickChart();
+    },
+    "combined-selection": function () {
+        if (!window.combinedChart) initCombinedSelectionChart();
+    },
+    forecast: function () {
+        if (!window.forecastCharts) initForecastCharts();
+    },
+    "stack-bar-legends-default": function () {
+        if (!window.sblDefaultChart) {
+            window.sblDefaultChart = true;
+            initStackBarLegendsDefaultChart();
+        }
+    },
+    "stack-bar-legends-min-custom": function () {
+        if (!window.mslHCChart) {
+            window.mslHCChart = true;
+            initMemberStackedLegendHCChart();
+        }
+    },
+    "stack-bar-legends-full-custom": function () {
+        if (!window.mslChart) {
+            window.mslChart = true;
+            initMemberStackedLegendChart();
+        }
+    },
+    "context-menu": function () {
+        if (!window.ctxMenuInit) {
+            window.ctxMenuInit = true;
+            initContextMenuCharts();
+        }
+    },
+    "final-version": function () {
+        if (!window.finalChart) initFinalVersionChart();
+    },
+    "final-version-hbc": function () {
+        if (!window.finalHBCInit) {
+            window.finalHBCInit = true;
+            initFinalVersionHBCChart();
+        }
+    },
 };
 
 function navigateTo(target) {
-    document.querySelectorAll('.sidebar a').forEach(function (l) { l.classList.remove('active'); });
-    var link = document.querySelector('.sidebar a[data-chart="' + target + '"]');
-    if (link) link.classList.add('active');
-
-    document.querySelectorAll('.content > .chart-container').forEach(function (c) {
-        c.style.display = c.id === target ? '' : 'none';
+    document.querySelectorAll(".sidebar a").forEach(function (l) {
+        l.classList.remove("active");
     });
+    var link = document.querySelector(
+        '.sidebar a[data-chart="' + target + '"]',
+    );
+    if (link) link.classList.add("active");
+
+    document
+        .querySelectorAll(".content > .chart-container")
+        .forEach(function (c) {
+            c.style.display = c.id === target ? "" : "none";
+        });
 
     if (CHART_INIT[target]) CHART_INIT[target]();
 
     location.hash = target;
 }
 
-document.querySelectorAll('.sidebar a').forEach(function (link) {
-    link.addEventListener('click', function (e) {
+document.querySelectorAll(".sidebar a").forEach(function (link) {
+    link.addEventListener("click", function (e) {
         e.preventDefault();
         navigateTo(this.dataset.chart);
     });

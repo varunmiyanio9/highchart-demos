@@ -41,6 +41,9 @@ Every chart instance has a unique ID (e.g., `FC-1`, `CTX-2`) defined in `chart-r
 | MTC-1 | multi-type-chart | multi-type-chart-main | Multi-Type Combined Chart |
 | CTX-1 | context-menu | ctx-builtin-chart | Context Menu — Built-in Exporting |
 | CTX-2 | context-menu | ctx-custom-chart | Context Menu — Custom Right-Click |
+| FIN-1 | final-version | fin-chart | Final Version — Combined Chart |
+| HBC-1 | final-version-hbc | hbc-simple-chart | Simple Horizontal Bar — Products |
+| HBC-2 | final-version-hbc | hbc-stacked-chart | Stacked Horizontal Bar — Product Groups |
 
 ## When Modifying a Chart
 1. Update the chart logic in `charts/<page-name>.js`

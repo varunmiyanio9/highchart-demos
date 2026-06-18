@@ -119,6 +119,12 @@
                                 Version</a
                             >
                         </li>
+                        <li>
+                            <a href="#" data-chart="final-version-hbc"
+                                ><span class="sidebar-star">★</span> Final
+                                Version HBC</a
+                            >
+                        </li>
                     </ul>
                 </nav>
             </aside>
@@ -359,9 +365,9 @@
                     <p class="bucket-section-hint">
                         The finalized presentation: combined chart types, three
                         stacked groups with one grouped legend, category
-                        selection (mouse + keyboard), right-click type switching,
-                        a forecast divider behind the bars, and a horizontal
-                        scroll toggle.
+                        selection (mouse + keyboard), right-click type
+                        switching, a forecast divider behind the bars, and a
+                        horizontal scroll toggle.
                     </p>
                     <div id="fin-toolbar" class="combined-toolbar"></div>
                     <div id="fin-scroll-wrap" class="fin-scroll-wrap">
@@ -370,11 +376,11 @@
                     <div id="fin-detail" class="detail-panel">
                         <h3>Selected Months Detail</h3>
                         <p class="hint">
-                            Drag on the chart background to select a range. Click
-                            x-axis labels (Ctrl/Cmd+Click to multi-select).
-                            Keyboard: Tab → Arrow → Space; Shift+Arrow for range;
-                            Escape to clear. Right-click a series to change its
-                            type.
+                            Drag on the chart background to select a range.
+                            Click x-axis labels (Ctrl/Cmd+Click to
+                            multi-select). Keyboard: Tab → Arrow → Space;
+                            Shift+Arrow for range; Escape to clear. Right-click
+                            a series to change its type.
                         </p>
                         <div id="fin-content"></div>
                     </div>
@@ -403,6 +409,29 @@
                         </ul>
                     </div>
                 </div>
+                <div
+                    id="final-version-hbc"
+                    class="chart-container"
+                    style="display: none"
+                >
+                    <h2 class="bucket-section-title">
+                        Final Version HBC — Horizontal Bar Charts
+                    </h2>
+                    <p class="bucket-section-hint">
+                        Two independent horizontal-bar demos. Toggle
+                        <strong>Allow Scroll</strong> to scroll the bars
+                        vertically (the value axis stays sticky). Change font
+                        size / weight. Select categories: drag on the chart
+                        background, click an axis label (Ctrl/Cmd+Click to
+                        multi-select), or use the keyboard (Tab → Arrow →
+                        Space/Enter, Shift+hover for a range, Escape to clear).
+                        The single <strong>Enable Point Label</strong> checkbox
+                        turns values on for both charts.
+                    </p>
+                    <div id="fin-hbc-toolbar" class="combined-toolbar"></div>
+                    <div id="hbc-simple-chart" class="hbc-chart"></div>
+                    <div id="hbc-stacked-chart" class="hbc-chart"></div>
+                </div>
             </main>
         </div>
         <script src="charts/bar-chart.js"></script>
@@ -418,6 +447,7 @@
         <script src="charts/multi-type-chart.js"></script>
         <script src="charts/context-menu.js"></script>
         <script src="charts/final-version.js"></script>
+        <script src="charts/final-version-hbc.js"></script>
         <script src="chart-registry.js"></script>
         <script src="charts.js"></script>
     </body>
